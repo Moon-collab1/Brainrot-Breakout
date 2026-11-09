@@ -1,0 +1,418 @@
+[gd_scene format=3]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_auto"]
+size = Vector2(134, 54)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_basurero"]
+size = Vector2(66, 42)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_limite_v"]
+size = Vector2(20, 648)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_limite_arriba"]
+size = Vector2(1152, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_limite_abajo"]
+size = Vector2(1152, 20)
+
+[node name="Mapa" type="Node2D"]
+
+[node name="Fondo" type="Node2D" parent="."]
+
+[node name="Acera" type="ColorRect" parent="Fondo"]
+offset_left = 0
+offset_top = 0
+offset_right = 1152
+offset_bottom = 112
+mouse_filter = 2
+color = Color(0.62, 0.62, 0.6, 1)
+
+[node name="Calzada" type="ColorRect" parent="Fondo"]
+offset_left = 0
+offset_top = 112
+offset_right = 1152
+offset_bottom = 648
+mouse_filter = 2
+color = Color(0.2, 0.2, 0.22, 1)
+
+[node name="Raya1" type="ColorRect" parent="Fondo"]
+offset_left = 20
+offset_top = 321
+offset_right = 80
+offset_bottom = 327
+mouse_filter = 2
+color = Color(0.95, 0.8, 0.1, 1)
+
+[node name="Raya2" type="ColorRect" parent="Fondo"]
+offset_left = 120
+offset_top = 321
+offset_right = 180
+offset_bottom = 327
+mouse_filter = 2
+color = Color(0.95, 0.8, 0.1, 1)
+
+[node name="Raya3" type="ColorRect" parent="Fondo"]
+offset_left = 220
+offset_top = 321
+offset_right = 280
+offset_bottom = 327
+mouse_filter = 2
+color = Color(0.95, 0.8, 0.1, 1)
+
+[node name="Raya4" type="ColorRect" parent="Fondo"]
+offset_left = 320
+offset_top = 321
+offset_right = 380
+offset_bottom = 327
+mouse_filter = 2
+color = Color(0.95, 0.8, 0.1, 1)
+
+[node name="Raya5" type="ColorRect" parent="Fondo"]
+offset_left = 420
+offset_top = 321
+offset_right = 480
+offset_bottom = 327
+mouse_filter = 2
+color = Color(0.95, 0.8, 0.1, 1)
+
+[node name="Raya6" type="ColorRect" parent="Fondo"]
+offset_left = 520
+offset_top = 321
+offset_right = 580
+offset_bottom = 327
+mouse_filter = 2
+color = Color(0.95, 0.8, 0.1, 1)
+
+[node name="Raya7" type="ColorRect" parent="Fondo"]
+offset_left = 620
+offset_top = 321
+offset_right = 680
+offset_bottom = 327
+mouse_filter = 2
+color = Color(0.95, 0.8, 0.1, 1)
+
+[node name="Raya8" type="ColorRect" parent="Fondo"]
+offset_left = 720
+offset_top = 321
+offset_right = 780
+offset_bottom = 327
+mouse_filter = 2
+color = Color(0.95, 0.8, 0.1, 1)
+
+[node name="Raya9" type="ColorRect" parent="Fondo"]
+offset_left = 820
+offset_top = 321
+offset_right = 880
+offset_bottom = 327
+mouse_filter = 2
+color = Color(0.95, 0.8, 0.1, 1)
+
+[node name="Raya10" type="ColorRect" parent="Fondo"]
+offset_left = 920
+offset_top = 321
+offset_right = 980
+offset_bottom = 327
+mouse_filter = 2
+color = Color(0.95, 0.8, 0.1, 1)
+
+[node name="Raya11" type="ColorRect" parent="Fondo"]
+offset_left = 1020
+offset_top = 321
+offset_right = 1080
+offset_bottom = 327
+mouse_filter = 2
+color = Color(0.95, 0.8, 0.1, 1)
+
+[node name="Cebra1" type="ColorRect" parent="Fondo"]
+offset_left = 1040
+offset_top = 130
+offset_right = 1100
+offset_bottom = 144
+mouse_filter = 2
+color = Color(0.9, 0.9, 0.9, 1)
+
+[node name="Cebra2" type="ColorRect" parent="Fondo"]
+offset_left = 1040
+offset_top = 164
+offset_right = 1100
+offset_bottom = 178
+mouse_filter = 2
+color = Color(0.9, 0.9, 0.9, 1)
+
+[node name="Cebra3" type="ColorRect" parent="Fondo"]
+offset_left = 1040
+offset_top = 198
+offset_right = 1100
+offset_bottom = 212
+mouse_filter = 2
+color = Color(0.9, 0.9, 0.9, 1)
+
+[node name="Cebra4" type="ColorRect" parent="Fondo"]
+offset_left = 1040
+offset_top = 232
+offset_right = 1100
+offset_bottom = 246
+mouse_filter = 2
+color = Color(0.9, 0.9, 0.9, 1)
+
+[node name="Cebra5" type="ColorRect" parent="Fondo"]
+offset_left = 1040
+offset_top = 266
+offset_right = 1100
+offset_bottom = 280
+mouse_filter = 2
+color = Color(0.9, 0.9, 0.9, 1)
+
+[node name="Cebra6" type="ColorRect" parent="Fondo"]
+offset_left = 1040
+offset_top = 300
+offset_right = 1100
+offset_bottom = 314
+mouse_filter = 2
+color = Color(0.9, 0.9, 0.9, 1)
+
+[node name="Cebra7" type="ColorRect" parent="Fondo"]
+offset_left = 1040
+offset_top = 334
+offset_right = 1100
+offset_bottom = 348
+mouse_filter = 2
+color = Color(0.9, 0.9, 0.9, 1)
+
+[node name="Cebra8" type="ColorRect" parent="Fondo"]
+offset_left = 1040
+offset_top = 368
+offset_right = 1100
+offset_bottom = 382
+mouse_filter = 2
+color = Color(0.9, 0.9, 0.9, 1)
+
+[node name="Cebra9" type="ColorRect" parent="Fondo"]
+offset_left = 1040
+offset_top = 402
+offset_right = 1100
+offset_bottom = 416
+mouse_filter = 2
+color = Color(0.9, 0.9, 0.9, 1)
+
+[node name="Cebra10" type="ColorRect" parent="Fondo"]
+offset_left = 1040
+offset_top = 436
+offset_right = 1100
+offset_bottom = 450
+mouse_filter = 2
+color = Color(0.9, 0.9, 0.9, 1)
+
+[node name="Cebra11" type="ColorRect" parent="Fondo"]
+offset_left = 1040
+offset_top = 470
+offset_right = 1100
+offset_bottom = 484
+mouse_filter = 2
+color = Color(0.9, 0.9, 0.9, 1)
+
+[node name="Cebra12" type="ColorRect" parent="Fondo"]
+offset_left = 1040
+offset_top = 504
+offset_right = 1100
+offset_bottom = 518
+mouse_filter = 2
+color = Color(0.9, 0.9, 0.9, 1)
+
+[node name="Cebra13" type="ColorRect" parent="Fondo"]
+offset_left = 1040
+offset_top = 538
+offset_right = 1100
+offset_bottom = 552
+mouse_filter = 2
+color = Color(0.9, 0.9, 0.9, 1)
+
+[node name="Cebra14" type="ColorRect" parent="Fondo"]
+offset_left = 1040
+offset_top = 572
+offset_right = 1100
+offset_bottom = 586
+mouse_filter = 2
+color = Color(0.9, 0.9, 0.9, 1)
+
+[node name="Cebra15" type="ColorRect" parent="Fondo"]
+offset_left = 1040
+offset_top = 606
+offset_right = 1100
+offset_bottom = 620
+mouse_filter = 2
+color = Color(0.9, 0.9, 0.9, 1)
+
+[node name="AutoRojo" type="StaticBody2D" parent="." groups=["rebotables"]]
+position = Vector2(210, 190)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="AutoRojo"]
+position = Vector2(0, 2)
+shape = SubResource("RectangleShape2D_auto")
+
+[node name="Dibujo" type="ColorRect" parent="AutoRojo"]
+offset_left = -71
+offset_top = -33
+offset_right = 71
+offset_bottom = 33
+mouse_filter = 2
+color = Color(0.85, 0.15, 0.15, 1)
+
+[node name="AutoAmarillo" type="StaticBody2D" parent="." groups=["rebotables"]]
+position = Vector2(130, 480)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="AutoAmarillo"]
+position = Vector2(0, 2)
+shape = SubResource("RectangleShape2D_auto")
+
+[node name="Dibujo" type="ColorRect" parent="AutoAmarillo"]
+offset_left = -71
+offset_top = -33
+offset_right = 71
+offset_bottom = 33
+mouse_filter = 2
+color = Color(0.95, 0.8, 0.15, 1)
+
+[node name="AutoAzul" type="StaticBody2D" parent="." groups=["rebotables"]]
+position = Vector2(870, 480)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="AutoAzul"]
+position = Vector2(0, 2)
+shape = SubResource("RectangleShape2D_auto")
+
+[node name="Dibujo" type="ColorRect" parent="AutoAzul"]
+offset_left = -71
+offset_top = -33
+offset_right = 71
+offset_bottom = 33
+mouse_filter = 2
+color = Color(0.2, 0.35, 0.85, 1)
+
+[node name="Basurero1" type="StaticBody2D" parent="." groups=["rebotables"]]
+position = Vector2(792, 174)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="Basurero1"]
+position = Vector2(0, 8)
+shape = SubResource("RectangleShape2D_basurero")
+
+[node name="Dibujo" type="ColorRect" parent="Basurero1"]
+offset_left = -36
+offset_top = -30
+offset_right = 36
+offset_bottom = 30
+mouse_filter = 2
+color = Color(0.25, 0.45, 0.3, 1)
+
+[node name="Basurero2" type="StaticBody2D" parent="." groups=["rebotables"]]
+position = Vector2(352, 545)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="Basurero2"]
+position = Vector2(0, 8)
+shape = SubResource("RectangleShape2D_basurero")
+
+[node name="Dibujo" type="ColorRect" parent="Basurero2"]
+offset_left = -36
+offset_top = -30
+offset_right = 36
+offset_bottom = 30
+mouse_filter = 2
+color = Color(0.25, 0.45, 0.3, 1)
+
+[node name="Farola1" type="Node2D" parent="."]
+position = Vector2(63, 22)
+
+[node name="Poste" type="ColorRect" parent="Farola1"]
+offset_left = -3
+offset_top = -22
+offset_right = 3
+offset_bottom = 22
+mouse_filter = 2
+color = Color(0.15, 0.15, 0.15, 1)
+
+[node name="Lampara" type="ColorRect" parent="Farola1"]
+offset_left = -10
+offset_top = -22
+offset_right = 10
+offset_bottom = -14
+mouse_filter = 2
+color = Color(1, 0.9, 0.5, 1)
+
+[node name="Farola2" type="Node2D" parent="."]
+position = Vector2(704, 22)
+
+[node name="Poste" type="ColorRect" parent="Farola2"]
+offset_left = -3
+offset_top = -22
+offset_right = 3
+offset_bottom = 22
+mouse_filter = 2
+color = Color(0.15, 0.15, 0.15, 1)
+
+[node name="Lampara" type="ColorRect" parent="Farola2"]
+offset_left = -10
+offset_top = -22
+offset_right = 10
+offset_bottom = -14
+mouse_filter = 2
+color = Color(1, 0.9, 0.5, 1)
+
+[node name="Farola3" type="Node2D" parent="."]
+position = Vector2(1004, 22)
+
+[node name="Poste" type="ColorRect" parent="Farola3"]
+offset_left = -3
+offset_top = -22
+offset_right = 3
+offset_bottom = 22
+mouse_filter = 2
+color = Color(0.15, 0.15, 0.15, 1)
+
+[node name="Lampara" type="ColorRect" parent="Farola3"]
+offset_left = -10
+offset_top = -22
+offset_right = 10
+offset_bottom = -14
+mouse_filter = 2
+color = Color(1, 0.9, 0.5, 1)
+
+[node name="LimiteIzq" type="StaticBody2D" parent="."]
+position = Vector2(-10, 324)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="LimiteIzq"]
+shape = SubResource("RectangleShape2D_limite_v")
+
+[node name="LimiteDer" type="StaticBody2D" parent="."]
+position = Vector2(1162, 324)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="LimiteDer"]
+shape = SubResource("RectangleShape2D_limite_v")
+
+[node name="LimiteArriba" type="StaticBody2D" parent="."]
+position = Vector2(576, 98)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="LimiteArriba"]
+shape = SubResource("RectangleShape2D_limite_arriba")
+
+[node name="LimiteAbajo" type="StaticBody2D" parent="."]
+position = Vector2(576, 658)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="LimiteAbajo"]
+shape = SubResource("RectangleShape2D_limite_abajo")

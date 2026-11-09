@@ -1,0 +1,218 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://zona_1/hud/hud.gd" id="1_hud"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0, 0, 0, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vida"]
+bg_color = Color(0.25, 0.8, 0.35, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dopa"]
+bg_color = Color(0.7, 0.3, 0.9, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jefe"]
+bg_color = Color(0.9, 0.2, 0.2, 1)
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_hud")
+
+[node name="PanelVida" type="Panel" parent="."]
+offset_left = 16.0
+offset_top = 14.0
+offset_right = 316.0
+offset_bottom = 90.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="LabelVida" type="Label" parent="PanelVida"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 6.0
+offset_right = 100.0
+offset_bottom = 34.0
+theme_override_font_sizes/font_size = 14
+text = "VIDA"
+vertical_alignment = 1
+
+[node name="BarraVida" type="ProgressBar" parent="PanelVida"]
+layout_mode = 0
+offset_left = 100.0
+offset_top = 10.0
+offset_right = 290.0
+offset_bottom = 30.0
+mouse_filter = 2
+theme_override_styles/fill = SubResource("StyleBoxFlat_vida")
+value = 100.0
+show_percentage = false
+
+[node name="LabelDopa" type="Label" parent="PanelVida"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 42.0
+offset_right = 100.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 14
+text = "DOPAMINA"
+vertical_alignment = 1
+
+[node name="BarraDopa" type="ProgressBar" parent="PanelVida"]
+layout_mode = 0
+offset_left = 100.0
+offset_top = 46.0
+offset_right = 290.0
+offset_bottom = 66.0
+mouse_filter = 2
+theme_override_styles/fill = SubResource("StyleBoxFlat_dopa")
+show_percentage = false
+
+[node name="Banner" type="Panel" parent="."]
+visible = false
+offset_left = 359.0
+offset_top = 11.0
+offset_right = 641.0
+offset_bottom = 97.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Texto" type="Label" parent="Banner"]
+layout_mode = 0
+offset_right = 282.0
+offset_bottom = 86.0
+theme_override_font_sizes/font_size = 28
+text = "¡SÍGUEME!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PanelZona" type="Panel" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -400.0
+offset_top = 14.0
+offset_right = -16.0
+offset_bottom = 54.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="TextoOla" type="Label" parent="PanelZona"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 2.0
+offset_right = 374.0
+offset_bottom = 20.0
+theme_override_font_sizes/font_size = 13
+text = "ZONA 1"
+
+[node name="TextoLibres" type="Label" parent="PanelZona"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 20.0
+offset_right = 374.0
+offset_bottom = 38.0
+theme_override_font_sizes/font_size = 13
+text = "Liberados: 0"
+
+[node name="PanelJefe" type="Panel" parent="."]
+visible = false
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -400.0
+offset_top = 60.0
+offset_right = -16.0
+offset_bottom = 90.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="LabelJefe" type="Label" parent="PanelJefe"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 3.0
+offset_right = 110.0
+offset_bottom = 27.0
+theme_override_font_sizes/font_size = 13
+text = "INFLUENCER"
+vertical_alignment = 1
+
+[node name="BarraJefe" type="ProgressBar" parent="PanelJefe"]
+layout_mode = 0
+offset_left = 112.0
+offset_top = 5.0
+offset_right = 374.0
+offset_bottom = 25.0
+mouse_filter = 2
+theme_override_styles/fill = SubResource("StyleBoxFlat_jefe")
+max_value = 56.0
+value = 56.0
+show_percentage = false
+
+[node name="SlotCelular" type="Panel" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -210.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Pantalla" type="ColorRect" parent="SlotCelular"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 132.0
+offset_bottom = 100.0
+mouse_filter = 2
+color = Color(0.08, 0.08, 0.1, 1)
+
+[node name="Estado" type="Label" parent="SlotCelular"]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 106.0
+offset_right = 140.0
+offset_bottom = 128.0
+theme_override_font_sizes/font_size = 14
+text = "CERRADO"
+horizontal_alignment = 1
+
+[node name="TeclaCelular" type="Label" parent="SlotCelular"]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 134.0
+offset_right = 140.0
+offset_bottom = 156.0
+theme_override_font_sizes/font_size = 12
+text = "ENTER = usar celular"
+horizontal_alignment = 1
+
+[node name="TeclaGolpe" type="Label" parent="SlotCelular"]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 160.0
+offset_right = 140.0
+offset_bottom = 182.0
+theme_override_font_sizes/font_size = 12
+text = "X = cachetada"
+horizontal_alignment = 1
+
+[node name="Flash" type="ColorRect" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 1)

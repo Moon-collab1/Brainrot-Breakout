@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://zona_1/jefe/jefe_influencer.gd" id="1_jefe"]
+[ext_resource type="Texture2D" uid="uid://bm24ys2gn1nw7" path="res://icon.svg" id="2_icon"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_cuerpo"]
+radius = 70.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_antena"]
+radius = 25.0
+
+[node name="JefeInfluencer" type="Node2D" groups=["jefe"]]
+script = ExtResource("1_jefe")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(1, 0.45, 0.8, 1)
+scale = Vector2(1.1, 1.1)
+texture = ExtResource("2_icon")
+
+[node name="Cuerpo" type="Area2D" parent="."]
+collision_layer = 16
+collision_mask = 0
+
+[node name="Forma" type="CollisionShape2D" parent="Cuerpo"]
+shape = SubResource("CircleShape2D_cuerpo")
+
+[node name="Antena" type="Area2D" parent="."]
+position = Vector2(0, -95)
+collision_layer = 16
+collision_mask = 0
+
+[node name="Forma" type="CollisionShape2D" parent="Antena"]
+shape = SubResource("CircleShape2D_antena")
+
+[node name="Dibujo" type="Sprite2D" parent="Antena"]
+modulate = Color(1, 0.9, 0.2, 1)
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("2_icon")
+
+[node name="TimerAtaque" type="Timer" parent="."]
+one_shot = true
+
+[node name="TimerEstado" type="Timer" parent="."]
+one_shot = true
