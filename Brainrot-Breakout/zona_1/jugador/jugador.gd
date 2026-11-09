@@ -1,5 +1,9 @@
 extends CharacterBody2D
 
+# Valores visuales/colisión (para revertir: ESCALA = 1.0, RADIO = 10.0)
+const ESCALA = 0.4
+const RADIO = 20.0
+
 var vel = 300.0
 var cel_abierto = false
 var vida = 100.0
@@ -11,7 +15,12 @@ var reg = Registro.new()
 var record = 0
 
 func _ready():
+	add_to_group("jugador")
 	record = reg.leer()
+	$Sprite2D.scale = Vector2(ESCALA, ESCALA)
+	var forma = CircleShape2D.new()
+	forma.radius = RADIO
+	$CollisionShape2D.shape = forma
 
 func _physics_process(delta):
 	var dir = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
@@ -40,8 +49,10 @@ func _physics_process(delta):
 	if vida <= 0.0:
 		perder("Perdiste por vida")
 
+	# Provisional: el HUD (Parte 2) reemplazará esta etiqueta
 	var mejor = max(record, libres)
-	$Info.text = "Vida: " + str(int(vida)) + "  Dopamina: " + str(int(dopa)) + "  Liberados: " + str(libres) + "  Récord: " + str(mejor)
+	if has_node("Info"):
+		$Info.text = "Vida: " + str(int(vida)) + "  Dopamina: " + str(int(dopa)) + "  Liberados: " + str(libres) + "  Récord: " + str(mejor)
 
 	velocity = dir * vel_act
 	move_and_slide()

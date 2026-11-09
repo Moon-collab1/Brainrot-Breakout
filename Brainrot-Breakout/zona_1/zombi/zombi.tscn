@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://b2xwgo0ibe320"]
+
+[ext_resource type="Script" uid="uid://c6bokc8uta0eo" path="res://zona_1/zombi/zombi.gd" id="1_oksdi"]
+[ext_resource type="Texture2D" uid="uid://bm24ys2gn1nw7" path="res://icon.svg" id="2_vh3bt"]
+
+[node name="Zombi" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 4
+script = ExtResource("1_oksdi")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_vh3bt")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
