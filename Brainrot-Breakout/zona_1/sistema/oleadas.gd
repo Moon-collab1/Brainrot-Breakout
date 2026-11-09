@@ -2,8 +2,10 @@ extends Node2D
 
 const RADIO_ZOMBI = 20.0   # mismo valor que RADIO en zombi.gd
 const INTENTOS_SPAWN = 10
+const POS_JEFE_A = Vector2(880, 300)   # Set A del jefe
 
 var zombi_esc = preload("res://zona_1/zombi/zombi.tscn")
+var jefe_esc = preload("res://zona_1/jefe/JefeInfluencer.tscn")
 var oleadas = Lista.new()
 var n_ola = 0
 var pausa = 3.0
@@ -59,3 +61,25 @@ func choca_con_obstaculo(pos):
 		if rect.has_point(pos):
 			return true
 	return false
+
+# Crea el jefe en el Set A y lo conecta al HUD (la Parte 4 lo usará en las oleadas múltiplo de 5)
+func invocar_jefe():
+	var jefe = jefe_esc.instantiate()
+	jefe.position = POS_JEFE_A
+	# se conecta antes de add_child para no perder la primera señal de vida
+	jefe.vida_cambiada.connect($HUD.actualizar_jefe)
+	jefe.murio.connect(_al_morir_jefe)
+	$HUD.mostrar_jefe(true)
+	add_child(jefe)
+	move_child(jefe, $Jugador.get_index())   # el jugador se dibuja encima del jefe
+
+func _al_morir_jefe():
+	$HUD.mostrar_jefe(false)
+
+# Tecla de debug (borrar al final): F1 invoca al jefe
+func _unhandled_input(event):
+	if not OS.is_debug_build():
+		return
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F1 and get_tree().get_nodes_in_group("jefe").size() == 0:
+			invocar_jefe()
