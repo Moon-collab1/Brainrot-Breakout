@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://zona_2/jefe/ataques/cinta.gd" id="1_cinta"]
+
+[node name="Cinta" type="Node2D" groups=["franjas"]]
+script = ExtResource("1_cinta")
