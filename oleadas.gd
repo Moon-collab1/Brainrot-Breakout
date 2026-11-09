@@ -4,6 +4,7 @@ var zombi_esc = preload("res://zombi.tscn")
 var oleadas = Lista.new()
 var n_ola = 0
 var pausa = 3.0
+var ult = 12
 
 func _ready():
 	oleadas.agregar_final(5)
@@ -11,8 +12,6 @@ func _ready():
 	oleadas.agregar_final(12)
 
 func _process(delta):
-	if oleadas.esta_vacia():
-		return
 	var vivos = get_tree().get_nodes_in_group("zombis").size()
 	if vivos == 0:
 		pausa -= delta
@@ -22,6 +21,8 @@ func _process(delta):
 
 func lanzar_oleada():
 	var cant = oleadas.quitar_primero()
+	ult += 4
+	oleadas.agregar_final(ult)
 	n_ola += 1
 	print("Oleada ", n_ola, " con ", cant, " zombis")
 	for i in range(cant):
