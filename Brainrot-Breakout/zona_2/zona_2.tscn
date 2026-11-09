@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://bm24ys2gn1nw7" path="res://icon.svg" id="3_icon"]
 [ext_resource type="PackedScene" path="res://zona_2/mapa/MapaZona2.tscn" id="4_mapa"]
 [ext_resource type="PackedScene" path="res://comun/hud/HUD.tscn" id="5_hud"]
+[ext_resource type="PackedScene" path="res://zona_2/jefe/JefeAlgoritmo.tscn" id="6_jefe"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_golpe"]
 
@@ -13,6 +14,7 @@ script = ExtResource("1_olas")
 numero_zona = 2
 nombre_zona = "EDIFICIO SOCIAL"
 nombre_jefe = "EL ALGORITMO"
+jefe_esc = ExtResource("6_jefe")
 pos_jefe = Vector2(880, 245)
 ola_inicial = 5
 tamanos_iniciales = [14, 16, 18]
