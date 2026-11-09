@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://d2j8pwvvl181g"]
+
+[ext_resource type="Script" uid="uid://d3vspu0ljp2hx" path="res://jugador.gd" id="1_wtcfe"]
+[ext_resource type="Texture2D" uid="uid://bm24ys2gn1nw7" path="res://icon.svg" id="2_0e48y"]
+[ext_resource type="PackedScene" uid="uid://b2xwgo0ibe320" path="res://zombi.tscn" id="3_epypp"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_0e48y"]
+
+[node name="Node2D" type="Node2D" unique_id=231189956]
+
+[node name="Jugador" type="CharacterBody2D" parent="." unique_id=1167690401]
+position = Vector2(576, 324)
+script = ExtResource("1_wtcfe")
+
+[node name="Sprite2D" type="Sprite2D" parent="Jugador" unique_id=1532194902]
+texture = ExtResource("2_0e48y")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Jugador" unique_id=418596592]
+shape = SubResource("CircleShape2D_0e48y")
+
+[node name="Info" type="Label" parent="Jugador" unique_id=1307205346]
+offset_left = -80.0
+offset_top = -100.0
+offset_right = -40.0
+offset_bottom = -77.0
+
+[node name="Zombi" parent="." unique_id=702352168 instance=ExtResource("3_epypp")]
+position = Vector2(100, 100)
