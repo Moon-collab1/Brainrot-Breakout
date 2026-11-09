@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://zona_2/jefe/ataques/burbuja.gd" id="1_burbuja"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_burbuja"]
+radius = 17.0
+
+[node name="Burbuja" type="Area2D" groups=["destruibles", "proyectiles"]]
+collision_layer = 8
+collision_mask = 5
+script = ExtResource("1_burbuja")
+
+[node name="Forma" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_burbuja")
