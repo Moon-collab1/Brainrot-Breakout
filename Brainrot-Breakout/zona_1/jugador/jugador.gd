@@ -49,11 +49,6 @@ func _physics_process(delta):
 	if vida <= 0.0:
 		perder("Perdiste por vida")
 
-	# Provisional: el HUD (Parte 2) reemplazará esta etiqueta
-	var mejor = max(record, libres)
-	if has_node("Info"):
-		$Info.text = "Vida: " + str(int(vida)) + "  Dopamina: " + str(int(dopa)) + "  Liberados: " + str(libres) + "  Récord: " + str(mejor)
-
 	velocity = dir * vel_act
 	move_and_slide()
 
