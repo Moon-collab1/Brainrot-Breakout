@@ -39,9 +39,14 @@ func lanzar_oleada():
 		return
 	print("Oleada ", n_ola, " con ", cant, " zombis")
 	for i in range(cant):
-		var z = zombi_esc.instantiate()
-		z.position = posicion_segura()
-		add_child(z)
+		crear_zombi()
+
+# Crea un zombi en una posición segura (lo usan las oleadas y el Llamado del jefe)
+func crear_zombi():
+	var z = zombi_esc.instantiate()
+	z.position = posicion_segura()
+	add_child(z)
+	return z
 
 # Spawn seguro: dentro del mapa, a 30 px del borde y sin tocar autos/basureros
 func posicion_segura():
@@ -85,6 +90,7 @@ func invocar_jefe():
 func _al_morir_jefe():
 	jefe_activo = false
 	$HUD.mostrar_jefe(false)
+	$HUD.mostrar_banner(false)   # por si murió durante el aviso del Llamado
 	# se limpian zombis, corazones y franjas (sin sumar a libres)
 	for z in get_tree().get_nodes_in_group("zombis"):
 		z.queue_free()

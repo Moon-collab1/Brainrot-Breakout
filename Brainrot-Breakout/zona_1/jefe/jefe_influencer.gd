@@ -21,7 +21,7 @@ const POS_ANTENA = [Vector2(0, -95), Vector2(-95, 0), Vector2(95, 0)]
 const PAUSA_ATAQUE = 1.5         # pausa entre ataques
 const PAUSA_ATAQUE_F2 = 1.0      # pausa en fase 2
 const ESPERA_COOLDOWN = 0.5      # si todos los ataques están en cooldown
-const COOLDOWNS = {"flash": 7.0, "lluvia": 6.0, "lluvia_grande": 12.0, "directo": 14.0, "pulso": 4.0}
+const COOLDOWNS = {"flash": 7.0, "lluvia": 6.0, "lluvia_grande": 12.0, "directo": 14.0, "pulso": 4.0, "llamado": 12.0}
 # Pulso del aro (Parte 5)
 const PULSO_DIST = 130.0     # distancia al centro que activa el pulso
 const PULSO_ESPERA = 1.2     # segundos cerca del jefe para que se active
@@ -63,6 +63,12 @@ const DIRECTO_AVISO = 1.0
 const DIRECTO_ACTIVA = 5.0
 const DIRECTO_ANCHO = 90.0
 const DIRECTO_DOPA = 15.0      # dopamina por segundo mientras estés dentro
+# Llamado a los seguidores (Parte 6)
+const LLAMADO_AVISO = 1.2        # el banner ¡SÍGUEME! sale este tiempo antes de los zombis
+const LLAMADO_SI_MENOS_DE = 6    # solo se lanza si hay menos de estos zombis vivos
+const LLAMADO_CANT = 6           # zombis que llama
+const LLAMADO_CANT_F2 = 8        # en fase 2
+const LLAMADO_SEPARACION = 0.4   # segundos entre un zombi y el siguiente
 # Cambio de set (Parte 5)
 const SETS = [Vector2(880, 300), Vector2(560, 324), Vector2(250, 324)]   # A, B, C
 const CAMBIO_DESVANECE = 0.5
@@ -117,6 +123,7 @@ func _ready():
 	cola.agregar_final("flash")
 	cola.agregar_final("lluvia")
 	cola.agregar_final("lluvia_grande")
+	cola.agregar_final("llamado")
 	ataques_hasta_cambio = randi_range(CAMBIO_MIN, CAMBIO_MAX)
 	for nombre in COOLDOWNS:
 		cooldown[nombre] = 0.0
@@ -217,6 +224,7 @@ func limpiar_ataques():
 		c.queue_free()
 	for f in get_tree().get_nodes_in_group("franjas"):
 		f.queue_free()
+	get_parent().get_node("HUD").mostrar_banner(false)   # si estaba el aviso del Llamado
 	# los zombis NO se borran
 
 # ---------------- Cola de ataques ----------------
@@ -274,7 +282,11 @@ func siguiente_ataque(ignorar_cooldown):
 	for i in range(cola.tam):
 		var nombre = cola.quitar_primero()
 		cola.agregar_final(nombre)
-		if ignorar_cooldown or cooldown[nombre] <= 0.0:
+		var libre = ignorar_cooldown or cooldown[nombre] <= 0.0
+		# el Llamado solo se usa si hay pocos zombis (F3 lo fuerza igual)
+		if libre and nombre == "llamado" and not ignorar_cooldown and zombis_vivos() >= LLAMADO_SI_MENOS_DE:
+			libre = false
+		if libre:
 			return nombre
 	return null
 
@@ -287,6 +299,8 @@ func ejecutar_ataque(nombre, mi_id):
 		await ataque_lluvia_grande(mi_id)
 	elif nombre == "directo":
 		await ataque_directo(mi_id)
+	elif nombre == "llamado":
+		await ataque_llamado(mi_id)
 
 # Los ataques usan esto para su aviso: mientras dura, el pulso no se activa
 func avisar(mi_id, seg):
@@ -326,6 +340,30 @@ func jugador_en_cono(jug):
 	if d.length() > FLASH_ALCANCE:
 		return false
 	return abs(angle_difference(cono_ang, d.angle())) <= deg_to_rad(FLASH_SEMIANGULO)
+
+# ---------------- Llamado a los seguidores ----------------
+# Banner 1,2 s y luego llegan los zombis de a uno. Si se cancela (aturdir) los que ya salieron se quedan.
+
+func zombis_vivos():
+	return get_tree().get_nodes_in_group("zombis").size()
+
+func ataque_llamado(mi_id):
+	var hud = get_parent().get_node("HUD")
+	var cant = LLAMADO_CANT
+	if fase == 2:
+		cant = LLAMADO_CANT_F2
+	hud.mostrar_banner(true)
+	await avisar(mi_id, LLAMADO_AVISO)
+	if mi_id != id_ataque or muerto:
+		return   # se canceló: limpiar_ataques() ya escondió el banner
+	hud.mostrar_banner(false)
+	for i in range(cant):
+		get_parent().crear_zombi()   # usa el spawn seguro de oleadas.gd
+		if i < cant - 1:
+			await esperar(LLAMADO_SEPARACION)
+			if mi_id != id_ataque or muerto:
+				return
+	print("Llamado: ", cant, " zombis")
 
 # ---------------- Contacto ----------------
 
@@ -609,6 +647,19 @@ func _unhandled_input(event):
 			var mi_id = id_ataque
 			await cambiar_set(mi_id)
 			if mi_id == id_ataque and not muerto:
+				iniciar_ataques()
+		elif event.keycode == KEY_F9 and estado == Estado.ATACANDO:
+			# fuerza el Llamado ya (cancela el ataque en curso y reanuda la cola al terminar)
+			limpiar_ataques()
+			id_ataque += 1
+			en_aviso = false
+			cono_activo = false
+			lluvia_aviso = false
+			grande_aviso = false
+			var mi_id = id_ataque
+			await ataque_llamado(mi_id)
+			if mi_id == id_ataque and not muerto:
+				cooldown["llamado"] = COOLDOWNS["llamado"]
 				iniciar_ataques()
 		elif event.keycode == KEY_F6:
 			recibir_golpe(antena.global_position)   # golpe de prueba a la antena
