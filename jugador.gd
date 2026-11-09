@@ -6,6 +6,12 @@ var vida = 100.0
 var dopa = 0.0
 var enfria = 0.0
 var libres = 0
+var alcance = 100.0
+var reg = Registro.new()
+var record = 0
+
+func _ready():
+	record = reg.leer()
 
 func _physics_process(delta):
 	var dir = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
@@ -30,23 +36,26 @@ func _physics_process(delta):
 	dopa = clamp(dopa, 0.0, 100.0)
 
 	if dopa >= 100.0:
-		print("Perdiste por dopamina")
-		get_tree().reload_current_scene()
-
+		perder("Perdiste por dopamina")
 	if vida <= 0.0:
-		print("Perdiste por vida")
-		get_tree().reload_current_scene()
+		perder("Perdiste por vida")
 
-	$Info.text = "Vida: " + str(int(vida)) + "  Dopamina: " + str(int(dopa)) + "  Liberados: " + str(libres)
+	var mejor = max(record, libres)
+	$Info.text = "Vida: " + str(int(vida)) + "  Dopamina: " + str(int(dopa)) + "  Liberados: " + str(libres) + "  Récord: " + str(mejor)
 
 	velocity = dir * vel_act
 	move_and_slide()
 
+func perder(razon):
+	print(razon)
+	reg.guardar(libres)
+	get_tree().reload_current_scene()
+
 func dar_cachetada():
 	$Golpe/Dibujo.visible = true
-	for cuerpo in $Golpe.get_overlapping_bodies():
-		if cuerpo.is_in_group("zombis"):
-			cuerpo.liberar()
+	for z in get_tree().get_nodes_in_group("zombis"):
+		if global_position.distance_to(z.global_position) < alcance:
+			z.liberar()
 			libres += 1
 	await get_tree().create_timer(0.15).timeout
 	$Golpe/Dibujo.visible = false
