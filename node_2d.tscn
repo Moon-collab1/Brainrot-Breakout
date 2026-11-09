@@ -6,6 +6,8 @@
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_0e48y"]
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_awwja"]
+
 [node name="Node2D" type="Node2D" unique_id=231189956]
 
 [node name="Jugador" type="CharacterBody2D" parent="." unique_id=1167690401]
@@ -23,6 +25,17 @@ offset_left = -80.0
 offset_top = -100.0
 offset_right = -40.0
 offset_bottom = -77.0
+
+[node name="Golpe" type="Area2D" parent="Jugador" unique_id=1950159947]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Jugador/Golpe" unique_id=554361432]
+shape = SubResource("CircleShape2D_awwja")
+
+[node name="Dibujo" type="Sprite2D" parent="Jugador/Golpe" unique_id=1062767177]
+visible = false
+modulate = Color(1, 0, 0, 1)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("2_0e48y")
 
 [node name="Zombi" parent="." unique_id=702352168 instance=ExtResource("3_epypp")]
 position = Vector2(100, 100)
