@@ -3,10 +3,15 @@
 [ext_resource type="Script" uid="uid://cyng0ot75jlqt" path="res://oleadas.gd" id="1_epypp"]
 [ext_resource type="Script" uid="uid://d3vspu0ljp2hx" path="res://jugador.gd" id="1_wtcfe"]
 [ext_resource type="Texture2D" uid="uid://bm24ys2gn1nw7" path="res://icon.svg" id="2_0e48y"]
+[ext_resource type="Shader" path="res://daltonismo.gdshader" id="shader_dalton"]
+[ext_resource type="Script" path="res://filtro_control.gd" id="script_filtro"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_0e48y"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_awwja"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dalton"]
+shader = ExtResource("shader_dalton")
 
 [node name="Node2D" type="Node2D" unique_id=231189956]
 script = ExtResource("1_epypp")
@@ -48,9 +53,3 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("script_filtro")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_dalton"]
-shader = ExtResource("shader_dalton")
-
-[ext_resource type="Script" uid="uid://shaderuid1" path="res://daltonismo.gd" id="shader_dalton"]
-[ext_resource type="Script" uid="uid://scriptuid2" path="res://filtro_control.gd" id="script_filtro"]
