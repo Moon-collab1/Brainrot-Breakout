@@ -52,5 +52,5 @@ script = ExtResource("script_filtro")
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_dalton"]
 shader = ExtResource("shader_dalton")
 
-[ext_resource type="Script" uid="uid://shaderuid1" path="res://daltonism.gd" id="shader_dalton"]
+[ext_resource type="Script" uid="uid://shaderuid1" path="res://daltonismo.gd" id="shader_dalton"]
 [ext_resource type="Script" uid="uid://scriptuid2" path="res://filtro_control.gd" id="script_filtro"]
