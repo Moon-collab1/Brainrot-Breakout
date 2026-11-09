@@ -90,6 +90,8 @@ func _al_morir_jefe():
 		z.queue_free()
 	for p in get_tree().get_nodes_in_group("proyectiles"):
 		p.queue_free()
+	for c in get_tree().get_nodes_in_group("corazones"):
+		c.queue_free()
 	for f in get_tree().get_nodes_in_group("franjas"):
 		f.queue_free()
 	pausa = 3.0
