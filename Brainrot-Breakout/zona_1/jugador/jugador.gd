@@ -63,5 +63,12 @@ func dar_cachetada():
 		if global_position.distance_to(z.global_position) < alcance:
 			z.liberar()
 			libres += 1
+	# los corazones del jefe se destruyen, pero NO suman a libres
+	for p in get_tree().get_nodes_in_group("proyectiles"):
+		if global_position.distance_to(p.global_position) < alcance:
+			p.queue_free()
+	# el jefe decide solo si el golpe lo alcanza (cuerpo o antena)
+	for j in get_tree().get_nodes_in_group("jefe"):
+		j.recibir_golpe(global_position)
 	await get_tree().create_timer(0.15).timeout
 	$Golpe/Dibujo.visible = false

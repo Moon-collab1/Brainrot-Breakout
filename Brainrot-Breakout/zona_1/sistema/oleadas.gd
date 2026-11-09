@@ -10,6 +10,7 @@ var oleadas = Lista.new()
 var n_ola = 0
 var pausa = 3.0
 var ult = 12
+var jefe_activo = false   # mientras sea true no se lanzan oleadas nuevas
 
 func _ready():
 	oleadas.agregar_final(5)
@@ -17,6 +18,8 @@ func _ready():
 	oleadas.agregar_final(12)
 
 func _process(delta):
+	if jefe_activo:
+		return   # con jefe no hay oleadas y la pausa queda congelada
 	var vivos = get_tree().get_nodes_in_group("zombis").size()
 	if vivos == 0:
 		pausa -= delta
@@ -29,6 +32,11 @@ func lanzar_oleada():
 	ult += 4
 	oleadas.agregar_final(ult)
 	n_ola += 1
+	# cada 5 oleadas viene el jefe en vez de zombis (se consume igual la entrada de la Lista)
+	if n_ola % 5 == 0:
+		print("Oleada ", n_ola, ": JEFE")
+		invocar_jefe()
+		return
 	print("Oleada ", n_ola, " con ", cant, " zombis")
 	for i in range(cant):
 		var z = zombi_esc.instantiate()
@@ -62,8 +70,9 @@ func choca_con_obstaculo(pos):
 			return true
 	return false
 
-# Crea el jefe en el Set A y lo conecta al HUD (la Parte 4 lo usará en las oleadas múltiplo de 5)
+# Crea el jefe en el Set A y lo conecta al HUD
 func invocar_jefe():
+	jefe_activo = true
 	var jefe = jefe_esc.instantiate()
 	jefe.position = POS_JEFE_A
 	# se conecta antes de add_child para no perder la primera señal de vida
@@ -74,7 +83,16 @@ func invocar_jefe():
 	move_child(jefe, $Jugador.get_index())   # el jugador se dibuja encima del jefe
 
 func _al_morir_jefe():
+	jefe_activo = false
 	$HUD.mostrar_jefe(false)
+	# se limpian zombis, corazones y franjas (sin sumar a libres)
+	for z in get_tree().get_nodes_in_group("zombis"):
+		z.queue_free()
+	for p in get_tree().get_nodes_in_group("proyectiles"):
+		p.queue_free()
+	for f in get_tree().get_nodes_in_group("franjas"):
+		f.queue_free()
+	pausa = 3.0
 
 # Tecla de debug (borrar al final): F1 invoca al jefe
 func _unhandled_input(event):
