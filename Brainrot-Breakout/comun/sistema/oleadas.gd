@@ -14,6 +14,12 @@ const INTENTOS_SPAWN = 10
 @export var tamanos_iniciales: Array = [5, 8, 12]
 @export var paso_oleada = 4                # cuánto sube "ult" en cada oleada
 @export var spawn_y_min = 130.0
+# Bordes por donde salen los zombis (los valores por defecto son los de siempre).
+# La Zona 4 (ascensor) los cambia porque su arena es más pequeña.
+@export var spawn_x_min = 30.0
+@export var spawn_x_max = 1122.0
+@export var spawn_y_max = 630.0
+@export var spawn_y_fondo = 618.0
 @export var escena_siguiente = ""          # vacío = siguen las oleadas
 
 var zombi_esc = preload("res://comun/zombi/zombi.tscn")
@@ -73,10 +79,10 @@ func posicion_segura():
 func punto_borde():
 	var lado = randi() % 3
 	if lado == 0:
-		return Vector2(30, randf_range(spawn_y_min, 630))
+		return Vector2(spawn_x_min, randf_range(spawn_y_min, spawn_y_max))
 	elif lado == 1:
-		return Vector2(1122, randf_range(spawn_y_min, 630))
-	return Vector2(randf_range(30, 1122), 618)
+		return Vector2(spawn_x_max, randf_range(spawn_y_min, spawn_y_max))
+	return Vector2(randf_range(spawn_x_min, spawn_x_max), spawn_y_fondo)
 
 # "rebotables" = rectángulos; "obstaculos" = círculos o rectángulos
 func choca_con_obstaculo(pos):

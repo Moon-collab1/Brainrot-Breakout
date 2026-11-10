@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://zona_5/jefe/jefe_dopamina.gd" id="1_jefe"]
+
+[node name="JefeDopamina" type="Node2D" groups=["jefe"]]
+script = ExtResource("1_jefe")
+
+[node name="NombreAtaque" type="Label" parent="."]
+visible = false
+theme_override_colors/font_color = Color(1, 0.55, 0.5, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+text = "JERINGAZO ◂"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TimerEstado" type="Timer" parent="."]
+one_shot = true

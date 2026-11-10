@@ -15,6 +15,14 @@ extends CanvasLayer
 @onready var estado_cel = $SlotCelular/Estado
 @onready var flash = $Flash
 
+func _ready():
+	# Controles táctiles: solo se activan en celular/tableta (ver controles_tactiles.gd)
+	var tactil = preload("res://comun/controles_tactiles/controles_tactiles.gd").new()
+	add_child(tactil)
+	if tactil.activo:
+		$SlotCelular/TeclaCelular.text = "Botón CELULAR"
+		$SlotCelular/TeclaGolpe.text = "Botón CACHETADA"
+
 func _process(_delta):
 	barra_vida.value = jug.vida
 	barra_dopa.value = jug.dopa
