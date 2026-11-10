@@ -137,15 +137,24 @@ func _al_morir_jefe():
 	if escena_siguiente != "":
 		pasar_de_zona()
 
-# Guarda los libres, espera 2,5 s y carga la zona siguiente (en ARCADE vuelve al menú)
+# Guarda los libres, ejecuta la transición visual/sonora y carga la zona siguiente (en ARCADE vuelve al menú)
 func pasar_de_zona():
 	en_transicion = true
 	Registro.libres_inicio = $Jugador.libres
-	await get_tree().create_timer(2.5).timeout
-	if Registro.modo_arcade:
-		get_tree().change_scene_to_file(Registro.MENU)
+	
+	# Determina a dónde se va a dirigir (siguiente zona o menú en arcade)
+	var destino = Registro.MENU if Registro.modo_arcade else escena_siguiente
+	
+	if destino != "":
+		# Llama al autoload global de transición (asegúrate de haberlo registrado como Transicion)
+		if Engine.has_singleton("Transicion") or get_node_or_null("/root/Transicion"):
+			Transicion.cambiar_escena(destino)
+		else:
+			# Respaldo por si el autoload no está cargado todavía
+			await get_tree().create_timer(2.5).timeout
+			get_tree().change_scene_to_file(destino)
 	else:
-		get_tree().change_scene_to_file(escena_siguiente)
+		en_transicion = false
 
 # Tecla de debug (borrar al final): F1 invoca al jefe
 func _unhandled_input(event):
