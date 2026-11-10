@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 Ajustes="*res://comun/sistema/ajustes.gd"
 Pausa="*res://comun/sistema/pausa.gd"
 Transicion="*res://comun/sistema/transicion.gd"
+MusicaGlobal="*res://comun/sistema/musica_global.gd"
 
 [display]
 
