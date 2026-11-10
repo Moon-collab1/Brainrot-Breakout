@@ -17,26 +17,26 @@ func _ready() -> void:
     audio_player = AudioStreamPlayer.new()
     canvas.add_child(audio_player)
     
-    # Carga automática del sonido que descargaste
-    if ResourceLoader.exists("res://comun/sistema/cambio_zona.wav"):
-        audio_player.stream = load("res://comun/sistema/cambio_zona.wav")
+    # Carga segura del sonido de transición
+    var ruta_audio = "res://comun/sistema/cambio_zona.wav"
+    if ResourceLoader.exists(ruta_audio):
+        audio_player.stream = load(ruta_audio)
 
 func cambiar_escena(ruta_siguiente: String) -> void:
     color_rect.mouse_filter = Control.MOUSE_FILTER_STOP
     
-    # Reproduce el sonido al iniciar la transición
     if audio_player.stream:
         audio_player.play()
     
-    # Fundido a negro (Fade Out)
+    # Animación de fundido a negro (Fade Out)
     var tween = create_tween()
     tween.tween_property(color_rect, "color:a", 1.0, 0.5)
     await tween.finished
     
-    # Cambio de escena
+    # Cambio oficial de escena
     get_tree().change_scene_to_file(ruta_siguiente)
     
-    # Fundido de entrada (Fade In)
+    # Animación para aclarar la pantalla (Fade In)
     var tween_in = create_tween()
     tween_in.tween_property(color_rect, "color:a", 0.0, 0.5)
     await tween_in.finished
