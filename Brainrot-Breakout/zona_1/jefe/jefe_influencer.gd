@@ -15,11 +15,14 @@ const PARPADEO_FINAL = 1.0
 const ALCANCE_JUGADOR = 100.0    # igual a "alcance" de jugador.gd
 const RADIO_CUERPO = 70.0
 const RADIO_ANTENA = 25.0
+const ALCANCE_VULNERABLE = 220.0  # antena azul: el golpe cuenta si el jugador está a esta distancia o menos del jefe
 # Posiciones de la antena: 0 arriba, 1 izquierda, 2 derecha
 const POS_ANTENA = [Vector2(0, -95), Vector2(-95, 0), Vector2(95, 0)]
 # Cola de rotación de ataques (Parte 5)
-const PAUSA_ATAQUE = 1.5         # pausa entre ataques
-const PAUSA_ATAQUE_F2 = 1.0      # pausa en fase 2
+# TIEMPO MUERTO entre un ataque y el siguiente: el jefe no tira nada, la antena se pone AZUL
+# y es el ÚNICO momento en que se le puede hacer daño (cada cachetada le baja 1 de vida).
+const PAUSA_ATAQUE = 4.0         # antes 1.5: segundos de tiempo muerto (antena azul)
+const PAUSA_ATAQUE_F2 = 3.0      # antes 1.0: en fase 2 el tiempo muerto es más corto
 const ESPERA_COOLDOWN = 0.5      # si todos los ataques están en cooldown
 const COOLDOWNS = {"flash": 7.0, "lluvia": 6.0, "lluvia_grande": 12.0, "directo": 14.0, "pulso": 4.0, "llamado": 12.0}
 # Pulso del aro (Parte 5)
@@ -90,6 +93,9 @@ var id_ataque = 0        # sube al cancelar; las corrutinas de ataque lo compara
 var muerto = false
 var tw_aviso = null
 var tw_parpadeo = null
+var vulnerable = false     # true = tiempo muerto: antena AZUL y se le puede pegar
+var vuln_t = 0.0           # segundos que le quedan al tiempo muerto (para el parpadeo final)
+var t_destello = 0.0       # segundos que le quedan al destello rojizo de «le pegaste»
 var cola = Lista.new()   # cola de rotación: se saca el primero y se reinserta al final
 var cooldown = {}        # segundos que le faltan a cada ataque para poder usarse
 var t_pelea = 0.0        # duración de la pelea (para el balance)
@@ -141,6 +147,7 @@ func _process(delta):
 	t_pelea += delta
 	for nombre in cooldown:
 		cooldown[nombre] = max(cooldown[nombre] - delta, 0.0)
+	actualizar_antena(delta)
 	revisar_pulso(delta)
 	dano_contacto(delta)
 	actualizar_cono(delta)
@@ -196,9 +203,12 @@ func cambiar_estado(nuevo):
 func _al_terminar_estado():
 	if estado == Estado.INTRO or estado == Estado.ATURDIDO:
 		cambiar_estado(Estado.ATACANDO)
-		iniciar_ataques()
+		# al terminar la aparición o el aturdimiento ataca enseguida (antena ROJA), sin tiempo muerto:
+		# así no se puede encadenar un aturdimiento con otro sin que el jefe ataque
+		iniciar_ataques(false, true)
 
 func aturdir():
+	vulnerable = false      # el tiempo muerto se acaba; aturdido se le pega igual (antena azul)
 	id_ataque += 1          # cancela el ataque en curso
 	id_pulso += 1           # y el pulso, si estaba brillando
 	pulso_activo = false
@@ -238,34 +248,41 @@ func esperar(seg):
 	await t.timeout
 	t.queue_free()
 
-func iniciar_ataques(directo = false):
+func iniciar_ataques(directo = false, sin_pausa = false):
 	id_ataque += 1
+	vulnerable = false
 	en_aviso = false
 	cono_activo = false
 	lluvia_aviso = false
 	grande_aviso = false
-	bucle_ataques(id_ataque, directo)
+	bucle_ataques(id_ataque, directo, sin_pausa)
 
 # directo = true: ataca ya (sin pausa) e ignora los cooldowns (lo usa F3)
-func bucle_ataques(mi_id, directo):
-	var saltar_pausa = directo
+# sin_pausa = true: el primer ataque sale ya, sin tiempo muerto antes (pero respeta cooldowns)
+func bucle_ataques(mi_id, directo, sin_pausa = false):
+	var saltar_pausa = directo or sin_pausa
 	while mi_id == id_ataque and not muerto:
 		if not saltar_pausa:
+			# TIEMPO MUERTO: no tira nada, antena azul, se le puede pegar
+			var pausa = PAUSA_ATAQUE
 			if fase == 2:
-				await esperar(PAUSA_ATAQUE_F2)
-			else:
-				await esperar(PAUSA_ATAQUE)
+				pausa = PAUSA_ATAQUE_F2
+			abrir_ventana(pausa)
+			await esperar(pausa)
 			if mi_id != id_ataque or muerto:
 				return
 		saltar_pausa = false
 		var nombre = siguiente_ataque(directo)
 		directo = false
 		if nombre == null:
-			# todos en cooldown: espera 0,5 s y vuelve a probar sin pausa extra
+			# todos en cooldown: espera 0,5 s y vuelve a probar sin pausa extra.
+			# Como tampoco está tirando nada, sigue siendo tiempo muerto (antena azul).
+			abrir_ventana(ESPERA_COOLDOWN)
 			await esperar(ESPERA_COOLDOWN)
 			saltar_pausa = true
 			continue
 		print("Cola -> ", nombre)
+		vulnerable = false   # empieza a tirar una habilidad: antena ROJA, no recibe daño
 		await ejecutar_ataque(nombre, mi_id)
 		cooldown[nombre] = COOLDOWNS[nombre]   # el cooldown cuenta desde que termina (o se cancela)
 		if mi_id != id_ataque or muerto:
@@ -496,7 +513,8 @@ func ataque_directo(mi_id):
 # Es reactivo: no está en la cola. Solo en ATACANDO y sin cortar el aviso de otro ataque.
 
 func revisar_pulso(delta):
-	if estado != Estado.ATACANDO or pulso_activo or cooldown["pulso"] > 0.0:
+	# CAMBIO: en el tiempo muerto (vulnerable) no lanza el Pulso, para que puedas acercarte a pegarle
+	if estado != Estado.ATACANDO or vulnerable or pulso_activo or cooldown["pulso"] > 0.0:
 		pulso_t = 0.0
 		return
 	if en_aviso:
@@ -546,6 +564,29 @@ func disparar_onda():
 
 # ---------------- Antena ----------------
 
+# Abre el tiempo muerto: durante "seg" segundos la antena está azul y el jefe recibe daño
+func abrir_ventana(seg):
+	vulnerable = true
+	vuln_t = seg
+
+# Pinta la antena según se le pueda pegar o no. El dibujo (dibujo_antena.gd) lee estas variables.
+#   AZUL = se le puede pegar      ROJO = no se le puede pegar
+func actualizar_antena(delta):
+	vuln_t = max(vuln_t - delta, 0.0)
+	var dibujo = $Antena/Dibujo
+	dibujo.azul = es_vulnerable()   # la MISMA función que usa recibir_golpe()
+	# el último segundo del tiempo muerto parpadea, para avisar que se acaba
+	dibujo.por_cambiar = es_vulnerable() and estado == Estado.ATACANDO and vuln_t <= 1.0
+	# destello rojizo del cuerpo cuando le entra un golpe
+	if t_destello > 0.0:
+		t_destello -= delta
+		$Visual.modulate = Color(1.0, 0.45, 0.45)
+		if t_destello <= 0.0:
+			if estado == Estado.ATURDIDO:
+				$Visual.modulate = COLOR_ATURDIDO
+			else:
+				$Visual.modulate = COLOR_NORMAL
+
 func nueva_antena():
 	var v = antenas.quitar_primero()
 	if v == null:
@@ -577,18 +618,34 @@ func detener_parpadeo():
 # ---------------- Daño ----------------
 
 # pos = posición del jugador al dar la cachetada
-func recibir_golpe(pos):
-	if muerto or estado == Estado.INTRO or estado == Estado.CAMBIANDO:
-		return
-	var en_cuerpo = pos.distance_to(global_position) <= ALCANCE_JUGADOR + RADIO_CUERPO
-	var en_antena = antena.visible and pos.distance_to(antena.global_position) <= ALCANCE_JUGADOR + RADIO_ANTENA
+# ¿Se le puede hacer daño AHORA? Esta es la ÚNICA función que lo decide.
+# La usan las dos cosas a la vez: el color de la antena (azul/rojo) y el daño de la cachetada.
+# Por eso siempre coinciden: antena azul = recibe daño, antena roja = no recibe daño.
+func es_vulnerable():
+	if muerto:
+		return false
 	if estado == Estado.ATURDIDO:
-		if en_cuerpo or en_antena:
-			quitar_vida(1)
-	elif en_antena:
-		golpear_antena()
-	# si solo alcanza el cuerpo estando bloqueado: no pasa nada
+		return true                 # aturdido (solo pasa con la tecla de prueba F2)
+	return estado == Estado.ATACANDO and vulnerable   # tiempo muerto entre habilidades
 
+# pos = centro del golpe de la cachetada (lo manda jugador.gd)
+func recibir_golpe(pos):
+	if not es_vulnerable():
+		return   # antena roja: no pasa nada
+	# ¿El golpe le llega? Vale cualquiera de estas tres cosas:
+	#   - el círculo del golpe toca el cuerpo
+	#   - el círculo del golpe toca la antena
+	#   - el jugador está cerca del jefe (sin importar hacia dónde esté mirando)
+	var jug = get_parent().get_node("Jugador")
+	var en_cuerpo = pos.distance_to(global_position) <= ALCANCE_JUGADOR + RADIO_CUERPO
+	var en_antena = pos.distance_to(antena.global_position) <= ALCANCE_JUGADOR + RADIO_ANTENA
+	var cerca = jug.global_position.distance_to(global_position) <= ALCANCE_VULNERABLE
+	if en_cuerpo or en_antena or cerca:
+		t_destello = 0.12     # el jefe se pone rojizo un instante: se ve que el golpe entró
+		quitar_vida(1)        # antena azul: CADA cachetada le baja 1 de vida
+
+# (Ya no se usan: antes había que romper la antena a golpes para aturdirlo.
+#  Se dejan por si el equipo quiere volver a esa mecánica.)
 func golpear_antena():
 	antena_vida -= 1
 	if antena_vida <= 0:
