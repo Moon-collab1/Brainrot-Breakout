@@ -1,7 +1,7 @@
 extends Control
 
 # Menú principal. La interfaz se arma por código para que sea fácil de cambiar.
-# Pantallas: principal, arcade y ajustes (el leaderboard queda desactivado por ahora).
+# Pantallas: principal, arcade, ajustes y leaderboard.
 const NOMBRE_JUEGO = "BRAINROT BREAKOUT"
 const ESCENA_ZONA = "res://zona_%d/zona_%d.tscn"
 const COLOR_ACENTO = Color(1.0, 0.25, 0.65)
@@ -23,6 +23,7 @@ var actual = "principal"
 var titulo
 var eco
 var t = 0.0
+var cont_ranking   # aquí se dibujan las filas del ranking
 
 func _ready():
 	var fondo = Control.new()
@@ -41,6 +42,7 @@ func _ready():
 	pantallas["principal"] = crear_principal()
 	pantallas["arcade"] = crear_arcade()
 	pantallas["ajustes"] = crear_ajustes()
+	pantallas["ranking"] = crear_ranking()
 	for p in pantallas.values():
 		centro.add_child(p)
 	ir_a("principal")
@@ -68,6 +70,7 @@ func ir_a(nombre):
 func jugar():
 	Registro.libres_inicio = 0
 	Registro.modo_arcade = false
+	Registro.tiempo = 0.0
 	get_tree().change_scene_to_file(ESCENA_ZONA % [1, 1])   # sigue sola hasta la zona 6
 
 func arcade(n):
@@ -86,9 +89,7 @@ func crear_principal():
 	v.add_child(b_jugar)
 	v.add_child(crear_boton("ARCADE", func(): ir_a("arcade")))
 	v.add_child(crear_boton("CONFIGURACIÓN", func(): ir_a("ajustes")))
-	var b_lb = crear_boton("LEADERBOARD · PRONTO", func(): pass)
-	b_lb.disabled = true   # pendiente
-	v.add_child(b_lb)
+	v.add_child(crear_boton("LEADERBOARD", abrir_ranking))
 	if not OS.has_feature("web"):   # en el navegador quit() no hace nada
 		v.add_child(crear_boton("SALIR", salir))
 	foco["principal"] = b_jugar
@@ -166,6 +167,49 @@ func crear_ajustes():
 	volver.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	v.add_child(volver)
 	return v
+
+func abrir_ranking():
+	llenar_ranking()   # se vuelve a leer el archivo cada vez que se abre
+	ir_a("ranking")
+
+func crear_ranking():
+	var v = VBoxContainer.new()
+	v.add_theme_constant_override("separation", 12)
+	v.custom_minimum_size = Vector2(560, 0)
+	v.add_child(crear_subtitulo("LEADERBOARD · TOP 10"))
+	cont_ranking = VBoxContainer.new()
+	cont_ranking.add_theme_constant_override("separation", 2)
+	v.add_child(cont_ranking)
+	var volver = crear_boton("VOLVER", func(): ir_a("principal"), Vector2(250, 50))
+	volver.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	v.add_child(volver)
+	foco["ranking"] = volver
+	return v
+
+func llenar_ranking():
+	for hijo in cont_ranking.get_children():
+		hijo.queue_free()
+	var lb = Leaderboard.new()
+	if lb.lista.tam == 0:
+		var vacio = crear_etiqueta("Todavía no hay puntajes. ¡Sé el primero en ganar!", 0)
+		vacio.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cont_ranking.add_child(vacio)
+		return
+	cont_ranking.add_child(crear_fila_ranking("#", "NOMBRE", "LIBERADOS", "TIEMPO", COLOR_ACENTO))
+	for i in range(lb.lista.tam):
+		var e = lb.lista.obtener(i)
+		cont_ranking.add_child(crear_fila_ranking(str(i + 1), e.nombre, str(e.libres), Leaderboard.formato_tiempo(e.tiempo), Color.WHITE))
+
+func crear_fila_ranking(puesto, nombre, libres, tiempo, color):
+	var fila = HBoxContainer.new()
+	fila.add_theme_constant_override("separation", 12)
+	var datos = [[puesto, 40], [nombre, 220], [libres, 110], [tiempo, 90]]
+	for d in datos:
+		var l = crear_etiqueta(d[0], d[1])
+		l.add_theme_font_size_override("font_size", 16)
+		l.add_theme_color_override("font_color", color)
+		fila.add_child(l)
+	return fila
 
 func crear_fila_volumen(texto, bus):
 	var fila = HBoxContainer.new()

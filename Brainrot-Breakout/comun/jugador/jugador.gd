@@ -41,7 +41,9 @@ func _ready():
 	$Golpe/Dibujo.scale = Vector2.ONE * (radio_golpe * 2.0 / 128.0)   # NUEVO: el destello mide lo mismo que el golpe
 	add_child(preload("res://comun/jugador/vineta.gd").new())   # NUEVO: la viñeta del celular
 
+
 func _physics_process(delta):
+	Registro.tiempo += delta
 	var dir = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 
 	# Control invertido: las direcciones quedan al revés mientras dure
