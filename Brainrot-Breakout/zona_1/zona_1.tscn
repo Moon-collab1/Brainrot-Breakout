@@ -6,8 +6,13 @@
 [ext_resource type="PackedScene" path="res://zona_1/mapa/Mapa.tscn" id="3_mapa"]
 [ext_resource type="PackedScene" path="res://comun/hud/HUD.tscn" id="4_hud"]
 [ext_resource type="PackedScene" path="res://zona_1/jefe/JefeInfluencer.tscn" id="5_jefe"]
+[ext_resource type="Shader" path="res://daltonismo.gdshader" id="shader_dalton"]
+[ext_resource type="Script" path="res://filtro_control.gd" id="script_filtro"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_awwja"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dalton"]
+shader = ExtResource("shader_dalton")
 
 [node name="Zona1" type="Node2D"]
 script = ExtResource("1_epypp")
@@ -39,3 +44,14 @@ scale = Vector2(1.5, 1.5)
 texture = ExtResource("2_0e48y")
 
 [node name="HUD" parent="." instance=ExtResource("4_hud")]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer"]
+material = SubResource("ShaderMaterial_dalton")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("script_filtro")
