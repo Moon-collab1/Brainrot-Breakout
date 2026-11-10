@@ -1,22 +1,61 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://comun/hud/hud.gd" id="1_hud"]
+[ext_resource type="Script" path="res://comun/hud/borde_punteado.gd" id="2_borde"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0, 0, 0, 0.6)
+bg_color = Color(0.1, 0.1, 0.11, 0.86)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_barra_fondo"]
+bg_color = Color(0.13, 0.13, 0.13, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vida"]
-bg_color = Color(0.25, 0.8, 0.35, 1)
+bg_color = Color(0.208, 0.827, 0.42, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dopa"]
-bg_color = Color(0.7, 0.3, 0.9, 1)
+bg_color = Color(0.835, 0.345, 0.933, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jefe_fondo"]
+bg_color = Color(0.2, 0.2, 0.22, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jefe"]
-bg_color = Color(0.9, 0.2, 0.2, 1)
+bg_color = Color(0.95, 0.25, 0.25, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_banner"]
+bg_color = Color(0.078, 0.078, 0.165, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(1, 0.31, 0.64, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -31,44 +70,57 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="LabelVida" type="Label" parent="PanelVida"]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 6.0
-offset_right = 100.0
-offset_bottom = 34.0
-theme_override_font_sizes/font_size = 14
+offset_left = 14.0
+offset_top = 5.0
+offset_right = 82.0
+offset_bottom = 27.0
+theme_override_font_sizes/font_size = 13
 text = "VIDA"
 vertical_alignment = 1
 
 [node name="BarraVida" type="ProgressBar" parent="PanelVida"]
 layout_mode = 0
-offset_left = 100.0
-offset_top = 10.0
-offset_right = 290.0
-offset_bottom = 30.0
+offset_left = 82.0
+offset_top = 8.0
+offset_right = 288.0
+offset_bottom = 24.0
 mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_barra_fondo")
 theme_override_styles/fill = SubResource("StyleBoxFlat_vida")
 value = 100.0
 show_percentage = false
 
 [node name="LabelDopa" type="Label" parent="PanelVida"]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 42.0
-offset_right = 100.0
-offset_bottom = 70.0
-theme_override_font_sizes/font_size = 14
+offset_left = 14.0
+offset_top = 33.0
+offset_right = 82.0
+offset_bottom = 55.0
+theme_override_font_sizes/font_size = 13
 text = "DOPAMINA"
 vertical_alignment = 1
 
 [node name="BarraDopa" type="ProgressBar" parent="PanelVida"]
 layout_mode = 0
-offset_left = 100.0
-offset_top = 46.0
-offset_right = 290.0
-offset_bottom = 66.0
+offset_left = 82.0
+offset_top = 36.0
+offset_right = 288.0
+offset_bottom = 52.0
 mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_barra_fondo")
 theme_override_styles/fill = SubResource("StyleBoxFlat_dopa")
 show_percentage = false
+
+[node name="LabelAviso" type="Label" parent="PanelVida"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 55.0
+offset_right = 288.0
+offset_bottom = 73.0
+theme_override_colors/font_color = Color(0.72, 0.72, 0.75, 1)
+theme_override_font_sizes/font_size = 11
+text = "¡Si se llena, pierdes!"
+vertical_alignment = 1
 
 [node name="Banner" type="Panel" parent="."]
 visible = false
@@ -77,12 +129,13 @@ offset_top = 11.0
 offset_right = 641.0
 offset_bottom = 97.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+theme_override_styles/panel = SubResource("StyleBoxFlat_banner")
 
 [node name="Texto" type="Label" parent="Banner"]
 layout_mode = 0
 offset_right = 282.0
 offset_bottom = 86.0
+theme_override_colors/font_color = Color(1, 0.31, 0.64, 1)
 theme_override_font_sizes/font_size = 28
 text = "¡SÍGUEME!"
 horizontal_alignment = 1
@@ -102,21 +155,12 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="TextoOla" type="Label" parent="PanelZona"]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 2.0
-offset_right = 374.0
-offset_bottom = 20.0
-theme_override_font_sizes/font_size = 13
+offset_right = 384.0
+offset_bottom = 40.0
+theme_override_font_sizes/font_size = 15
 text = "ZONA 1"
-
-[node name="TextoLibres" type="Label" parent="PanelZona"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 20.0
-offset_right = 374.0
-offset_bottom = 38.0
-theme_override_font_sizes/font_size = 13
-text = "Liberados: 0"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="PanelJefe" type="Panel" parent="."]
 visible = false
@@ -126,32 +170,55 @@ anchor_right = 1.0
 offset_left = -400.0
 offset_top = 60.0
 offset_right = -16.0
-offset_bottom = 90.0
+offset_bottom = 94.0
 grow_horizontal = 0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="LabelJefe" type="Label" parent="PanelJefe"]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 3.0
-offset_right = 110.0
-offset_bottom = 27.0
+offset_top = 2.0
+offset_right = 384.0
+offset_bottom = 23.0
+theme_override_colors/font_color = Color(1, 0.45, 0.45, 1)
 theme_override_font_sizes/font_size = 13
-text = "INFLUENCER"
+text = "JEFE: INFLUENCER"
+horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="BarraJefe" type="ProgressBar" parent="PanelJefe"]
 layout_mode = 0
-offset_left = 112.0
-offset_top = 5.0
-offset_right = 374.0
-offset_bottom = 25.0
+offset_left = 16.0
+offset_top = 25.0
+offset_right = 368.0
+offset_bottom = 30.0
 mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_jefe_fondo")
 theme_override_styles/fill = SubResource("StyleBoxFlat_jefe")
 max_value = 56.0
 value = 56.0
 show_percentage = false
+
+[node name="PanelLibres" type="Panel" parent="."]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -44.0
+offset_right = 276.0
+offset_bottom = -16.0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="TextoLibres" type="Label" parent="PanelLibres"]
+layout_mode = 0
+offset_right = 260.0
+offset_bottom = 28.0
+theme_override_font_sizes/font_size = 12
+text = "Liberados: 0"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="SlotCelular" type="Panel" parent="."]
 anchors_preset = 3
@@ -173,16 +240,27 @@ layout_mode = 0
 offset_left = 12.0
 offset_top = 12.0
 offset_right = 132.0
-offset_bottom = 100.0
+offset_bottom = 120.0
 mouse_filter = 2
 color = Color(0.08, 0.08, 0.1, 1)
+
+[node name="TextoImagen" type="Label" parent="SlotCelular/Pantalla"]
+layout_mode = 0
+offset_right = 120.0
+offset_bottom = 108.0
+theme_override_colors/font_color = Color(0.85, 0.85, 0.88, 1)
+theme_override_font_sizes/font_size = 12
+text = "[ imagen del celular aquí ]"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
 
 [node name="Estado" type="Label" parent="SlotCelular"]
 layout_mode = 0
 offset_left = 4.0
-offset_top = 106.0
+offset_top = 124.0
 offset_right = 140.0
-offset_bottom = 128.0
+offset_bottom = 146.0
 theme_override_font_sizes/font_size = 14
 text = "CERRADO"
 horizontal_alignment = 1
@@ -190,22 +268,31 @@ horizontal_alignment = 1
 [node name="TeclaCelular" type="Label" parent="SlotCelular"]
 layout_mode = 0
 offset_left = 4.0
-offset_top = 134.0
+offset_top = 150.0
 offset_right = 140.0
-offset_bottom = 156.0
-theme_override_font_sizes/font_size = 12
+offset_bottom = 168.0
+theme_override_colors/font_color = Color(0.72, 0.72, 0.75, 1)
+theme_override_font_sizes/font_size = 11
 text = "ENTER = usar celular"
 horizontal_alignment = 1
 
 [node name="TeclaGolpe" type="Label" parent="SlotCelular"]
 layout_mode = 0
 offset_left = 4.0
-offset_top = 160.0
+offset_top = 170.0
 offset_right = 140.0
-offset_bottom = 182.0
-theme_override_font_sizes/font_size = 12
+offset_bottom = 188.0
+theme_override_colors/font_color = Color(0.72, 0.72, 0.75, 1)
+theme_override_font_sizes/font_size = 11
 text = "X = cachetada"
 horizontal_alignment = 1
+
+[node name="Borde" type="Control" parent="SlotCelular"]
+layout_mode = 0
+offset_right = 144.0
+offset_bottom = 194.0
+mouse_filter = 2
+script = ExtResource("2_borde")
 
 [node name="Flash" type="ColorRect" parent="."]
 visible = false

@@ -12,6 +12,7 @@
 [node name="Zona1" type="Node2D"]
 script = ExtResource("1_epypp")
 escena_siguiente = "res://zona_2/zona_2.tscn"
+nombre_jefe = "EL INFLUENCER VIRAL"
 jefe_esc = ExtResource("5_jefe")
 
 [node name="Mapa" parent="." instance=ExtResource("3_mapa")]

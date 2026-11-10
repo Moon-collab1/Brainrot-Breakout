@@ -10,10 +10,15 @@ config_version=5
 
 [application]
 
-config/name="lab2"
-run/main_scene="res://zona_1/zona_1.tscn"
+config/name="Brainrot Breakout"
+run/main_scene="res://menu/menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[autoload]
+
+Ajustes="*res://comun/sistema/ajustes.gd"
+Pausa="*res://comun/sistema/pausa.gd"
 
 [display]
 
@@ -21,6 +26,7 @@ window/size/viewport_width=1152
 window/size/viewport_height=648
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/handheld/orientation=4
 
 [input]
 

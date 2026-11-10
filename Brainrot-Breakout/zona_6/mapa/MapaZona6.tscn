@@ -1,0 +1,98 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://zona_6/mapa/mapa.gd" id="1_mapa"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rack"]
+size = Vector2(64, 122)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_limite_v"]
+size = Vector2(20, 648)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_limite_arriba"]
+size = Vector2(1152, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_limite_abajo"]
+size = Vector2(1152, 20)
+
+[node name="MapaZona6" type="Node2D"]
+script = ExtResource("1_mapa")
+
+[node name="Rack1" type="StaticBody2D" parent="." groups=["rebotables"]]
+position = Vector2(110, 240)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="Rack1"]
+shape = SubResource("RectangleShape2D_rack")
+
+[node name="Rack2" type="StaticBody2D" parent="." groups=["rebotables"]]
+position = Vector2(110, 440)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="Rack2"]
+shape = SubResource("RectangleShape2D_rack")
+
+[node name="Rack3" type="StaticBody2D" parent="." groups=["rebotables"]]
+position = Vector2(310, 545)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="Rack3"]
+shape = SubResource("RectangleShape2D_rack")
+
+[node name="Rack4" type="StaticBody2D" parent="." groups=["rebotables"]]
+position = Vector2(700, 545)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="Rack4"]
+shape = SubResource("RectangleShape2D_rack")
+
+[node name="Rack5" type="StaticBody2D" parent="." groups=["rebotables"]]
+position = Vector2(1040, 205)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="Rack5"]
+shape = SubResource("RectangleShape2D_rack")
+
+[node name="Rack6" type="StaticBody2D" parent="." groups=["rebotables"]]
+position = Vector2(1040, 505)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="Rack6"]
+shape = SubResource("RectangleShape2D_rack")
+
+[node name="LimiteIzq" type="StaticBody2D" parent="."]
+position = Vector2(-10, 324)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="LimiteIzq"]
+shape = SubResource("RectangleShape2D_limite_v")
+
+[node name="LimiteDer" type="StaticBody2D" parent="."]
+position = Vector2(1162, 324)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="LimiteDer"]
+shape = SubResource("RectangleShape2D_limite_v")
+
+[node name="LimiteArriba" type="StaticBody2D" parent="."]
+position = Vector2(576, 110)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="LimiteArriba"]
+shape = SubResource("RectangleShape2D_limite_arriba")
+
+[node name="LimiteAbajo" type="StaticBody2D" parent="."]
+position = Vector2(576, 658)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="LimiteAbajo"]
+shape = SubResource("RectangleShape2D_limite_abajo")

@@ -3,6 +3,11 @@ class_name Registro
 # Libres con los que se entra a la zona actual (los guarda la raíz al pasar de zona)
 static var libres_inicio = 0
 
+# true cuando se entró por ARCADE: al terminar la zona se vuelve al menú principal
+static var modo_arcade = false
+
+const MENU = "res://menu/menu.tscn"
+
 var ruta = "user://record.txt"
 
 func leer():
