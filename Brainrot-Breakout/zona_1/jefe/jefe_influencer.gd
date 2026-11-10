@@ -76,7 +76,7 @@ const CAMBIO_INVISIBLE = 0.5
 const CAMBIO_APARECE = 0.5
 const CAMBIO_MIN = 2           # se cambia de set cada 2-3 ataques (al azar)
 const CAMBIO_MAX = 3
-const COLOR_NORMAL = Color(1, 0.45, 0.8)
+const COLOR_NORMAL = Color(1, 1, 1)   # sin tinte: el diseño ya trae sus colores
 const COLOR_ATURDIDO = Color(0.5, 0.6, 1.0)
 
 enum Estado { INTRO, ATACANDO, CAMBIANDO, ATURDIDO }
@@ -181,11 +181,11 @@ func cambiar_estado(nuevo):
 	estado = nuevo
 	$TimerEstado.stop()
 	detener_parpadeo()
-	$Sprite2D.modulate = COLOR_NORMAL
+	$Visual.modulate = COLOR_NORMAL
 	if nuevo == Estado.INTRO:
 		$TimerEstado.start(TIEMPO_INTRO)
 	elif nuevo == Estado.ATURDIDO:
-		$Sprite2D.modulate = COLOR_ATURDIDO
+		$Visual.modulate = COLOR_ATURDIDO
 		$TimerEstado.start(TIEMPO_ATURDIDO)
 		# el último segundo parpadea la antena nueva
 		tw_aviso = create_tween()

@@ -74,7 +74,7 @@ func _vertical() -> bool:
 # ---------- entrada ----------
 func _process(_delta):
 	# si el celular está en vertical se pausa y se pide girarlo
-	var debe_pausar = _vertical()
+	var debe_pausar = _vertical() or Pausa.abierta   # Pausa.abierta: menú de pausa abierto
 	if get_tree().paused != debe_pausar:
 		get_tree().paused = debe_pausar
 	lienzo.queue_redraw()

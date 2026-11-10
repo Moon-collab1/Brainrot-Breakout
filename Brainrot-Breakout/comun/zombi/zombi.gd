@@ -31,20 +31,28 @@ func _physics_process(delta):
 		jug.vida -= dano * delta
 
 func _draw():
-	var piel = Color(0.45, 0.65, 0.35)
-	var piel_osc = Color(0.2, 0.35, 0.15)
-	# brazos estirados hacia adelante (se dibujan primero, quedan detrás del cuerpo)
-	draw_line(Vector2(-RADIO, 4), Vector2(-RADIO - 12, 16), piel_osc, 7.0)
-	draw_line(Vector2(RADIO, 4), Vector2(RADIO + 12, 16), piel_osc, 7.0)
-	draw_line(Vector2(-RADIO, 4), Vector2(-RADIO - 12, 16), piel, 4.0)
-	draw_line(Vector2(RADIO, 4), Vector2(RADIO + 12, 16), piel, 4.0)
-	# cuerpo con contorno oscuro
-	draw_circle(Vector2.ZERO, RADIO + 3.0, piel_osc)
-	draw_circle(Vector2.ZERO, RADIO, piel)
+	# Dibujo un poco más grande que el modelo base para que cubra la colisión (radio 20)
+	var esc = Vector2(1.2, 1.2)
+	var verde = Color(0.494, 0.851, 0.341)
+	var verde_osc = Color(0.16, 0.43, 0.16)
+	# sombra en el piso
+	draw_set_transform(Vector2(0, 31), 0.0, Vector2(esc.x, esc.y * 0.28))
+	draw_circle(Vector2.ZERO, 16.0, Color(0, 0, 0, 0.3))
+	draw_set_transform(Vector2.ZERO, 0.0, esc)
+	# cuerpo (ropa gris azulada)
+	var ropa = StyleBoxFlat.new()
+	ropa.bg_color = Color(0.333, 0.353, 0.467)
+	ropa.set_corner_radius_all(8)
+	draw_style_box(ropa, Rect2(-13, -5, 26, 28))
+	# cabeza verde con contorno oscuro
+	draw_circle(Vector2(0, -15), 15.0, verde_osc)
+	draw_circle(Vector2(0, -15), 13.0, verde)
 	# ojos con pupila
-	draw_circle(Vector2(-7, -5), 5.5, Color(1, 1, 1))
-	draw_circle(Vector2(7, -5), 5.5, Color(1, 1, 1))
-	draw_circle(Vector2(-6, -4), 2.2, Color(0.55, 0, 0))
-	draw_circle(Vector2(8, -4), 2.2, Color(0.55, 0, 0))
-	# boca
-	draw_line(Vector2(-8, 8), Vector2(8, 8), Color(0.25, 0.05, 0.05), 3.0)
+	draw_circle(Vector2(-5, -14), 3.2, Color(1, 1, 1))
+	draw_circle(Vector2(5, -14), 3.2, Color(1, 1, 1))
+	draw_circle(Vector2(-5, -14), 1.4, Color(0, 0, 0))
+	draw_circle(Vector2(5, -14), 1.4, Color(0, 0, 0))
+	# cejas fruncidas
+	draw_arc(Vector2(-4.5, -19), 4.5, deg_to_rad(200), deg_to_rad(340), 8, verde_osc, 1.6)
+	draw_arc(Vector2(4.5, -19), 4.5, deg_to_rad(200), deg_to_rad(340), 8, verde_osc, 1.6)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

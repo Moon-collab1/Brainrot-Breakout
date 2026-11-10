@@ -137,12 +137,15 @@ func _al_morir_jefe():
 	if escena_siguiente != "":
 		pasar_de_zona()
 
-# Guarda los libres, espera 2,5 s y carga la zona siguiente
+# Guarda los libres, espera 2,5 s y carga la zona siguiente (en ARCADE vuelve al menú)
 func pasar_de_zona():
 	en_transicion = true
 	Registro.libres_inicio = $Jugador.libres
 	await get_tree().create_timer(2.5).timeout
-	get_tree().change_scene_to_file(escena_siguiente)
+	if Registro.modo_arcade:
+		get_tree().change_scene_to_file(Registro.MENU)
+	else:
+		get_tree().change_scene_to_file(escena_siguiente)
 
 # Tecla de debug (borrar al final): F1 invoca al jefe
 func _unhandled_input(event):
