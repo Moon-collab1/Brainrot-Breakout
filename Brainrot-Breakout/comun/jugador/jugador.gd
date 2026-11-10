@@ -22,6 +22,9 @@ var arrastre_t = 0.0
 var mult_vel = 1.0
 var lento_t = 0.0
 var ultimo_liberado = ""   # escena del último zombi liberado (lo copia "Recomendado para ti")
+# Efectos de los jefes de las zonas 4 a 6 (se apagan solos al llegar a 0)
+var invertido_t = 0.0      # «Control invertido» del Dr. Dopamina: segundos que faltan
+var cel_bloqueado_t = 0.0  # «Apagón del celular» del Núcleo-∞: segundos que faltan
 
 func _ready():
 	add_to_group("jugador")
@@ -35,7 +38,16 @@ func _ready():
 func _physics_process(delta):
 	var dir = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 
-	if Input.is_action_just_pressed("ui_accept"):
+	# Control invertido: las direcciones quedan al revés mientras dure
+	if invertido_t > 0.0:
+		invertido_t -= delta
+		dir = -dir
+
+	# Apagón del celular: mientras dure, el celular se cierra y no se puede abrir
+	if cel_bloqueado_t > 0.0:
+		cel_bloqueado_t -= delta
+		cel_abierto = false
+	elif Input.is_action_just_pressed("ui_accept"):
 		cel_abierto = not cel_abierto
 
 	var vel_act = vel

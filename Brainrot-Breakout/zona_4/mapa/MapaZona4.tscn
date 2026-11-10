@@ -1,0 +1,63 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://zona_4/mapa/mapa.gd" id="1_mapa"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pasamanos"]
+size = Vector2(14, 180)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_limite_v"]
+size = Vector2(20, 480)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_limite_h"]
+size = Vector2(690, 20)
+
+[node name="MapaZona4" type="Node2D"]
+script = ExtResource("1_mapa")
+
+[node name="PasamanosIzq" type="StaticBody2D" parent="." groups=["rebotables"]]
+position = Vector2(263, 330)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="PasamanosIzq"]
+shape = SubResource("RectangleShape2D_pasamanos")
+
+[node name="PasamanosDer" type="StaticBody2D" parent="." groups=["rebotables"]]
+position = Vector2(889, 330)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="PasamanosDer"]
+shape = SubResource("RectangleShape2D_pasamanos")
+
+[node name="LimiteIzq" type="StaticBody2D" parent="."]
+position = Vector2(241, 330)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="LimiteIzq"]
+shape = SubResource("RectangleShape2D_limite_v")
+
+[node name="LimiteDer" type="StaticBody2D" parent="."]
+position = Vector2(911, 330)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="LimiteDer"]
+shape = SubResource("RectangleShape2D_limite_v")
+
+[node name="LimiteArriba" type="StaticBody2D" parent="."]
+position = Vector2(576, 100)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="LimiteArriba"]
+shape = SubResource("RectangleShape2D_limite_h")
+
+[node name="LimiteAbajo" type="StaticBody2D" parent="."]
+position = Vector2(576, 560)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="LimiteAbajo"]
+shape = SubResource("RectangleShape2D_limite_h")

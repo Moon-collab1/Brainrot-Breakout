@@ -13,13 +13,14 @@
 script = ExtResource("1_olas")
 numero_zona = 2
 nombre_zona = "EDIFICIO SOCIAL"
-nombre_jefe = "EL ALGORITMO"
+nombre_jefe = "ALGORITMO"
 jefe_esc = ExtResource("6_jefe")
 pos_jefe = Vector2(880, 245)
 ola_inicial = 5
 tamanos_iniciales = [14, 16, 18]
 paso_oleada = 2
 spawn_y_min = 150.0
+escena_siguiente = "res://zona_3/zona_3.tscn"
 
 [node name="Mapa" parent="." instance=ExtResource("4_mapa")]
 
