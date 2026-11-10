@@ -1,10 +1,8 @@
 extends Node
 
 # Pantalla de victoria: la crea el Núcleo-∞ al morir (es el jefe FINAL).
-# Congela las oleadas, guarda el récord, muestra el mensaje y a los 6 s reinicia el juego
-# desde la Zona 1. Es un nodo aparte porque el jefe se libera justo después de morir.
+# Congela las oleadas, guarda el récord, muestra el mensaje y a los 6 s vuelve al menú principal. Es un nodo aparte porque el jefe se libera justo después de morir.
 const SEG_ESPERA = 6.0
-const ZONA_INICIAL = "res://zona_1/zona_1.tscn"
 
 func _ready():
 	var zona = get_parent()
@@ -39,5 +37,5 @@ func mostrar_mensaje(texto):
 	l.offset_bottom = 134.0
 
 func _reiniciar():
-	Registro.libres_inicio = 0   # empieza de cero
-	get_tree().change_scene_to_file(ZONA_INICIAL)
+	Registro.libres_inicio = 0   # la próxima partida empieza de cero
+	get_tree().change_scene_to_file(Registro.MENU)

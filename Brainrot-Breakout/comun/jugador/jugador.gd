@@ -31,6 +31,7 @@ func _ready():
 	record = reg.leer()
 	libres = Registro.libres_inicio   # los libres con que se entró a la zona
 	$Sprite2D.scale = Vector2(ESCALA, ESCALA)
+	$Sprite2D.visible = false   # ahora el jugador se dibuja en _draw() (ver abajo)
 	var forma = CircleShape2D.new()
 	forma.radius = RADIO
 	$CollisionShape2D.shape = forma
@@ -112,3 +113,28 @@ func dar_cachetada():
 		j.recibir_golpe(global_position)
 	await get_tree().create_timer(0.15).timeout
 	$Golpe/Dibujo.visible = false
+
+# Modelo del jugador dibujado por código (sin textura): cabeza con lentes, cuerpo azul y sombra.
+# Para usar un PNG real, borra este _draw() y vuelve a mostrar el Sprite2D.
+func _draw():
+	# círculo suave: hasta dónde llega la cachetada
+	draw_circle(Vector2.ZERO, alcance, Color(1, 1, 1, 0.05))
+	# sombra en el piso
+	draw_set_transform(Vector2(0, 31), 0.0, Vector2(1.0, 0.32))
+	draw_circle(Vector2.ZERO, 22.0, Color(0, 0, 0, 0.3))
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	# cuerpo azul con contorno blanco
+	var cuerpo = StyleBoxFlat.new()
+	cuerpo.bg_color = Color(0.23, 0.51, 0.96)
+	cuerpo.border_color = Color(1, 1, 1)
+	cuerpo.set_border_width_all(3)
+	cuerpo.set_corner_radius_all(11)
+	draw_style_box(cuerpo, Rect2(-16, -9, 32, 37))
+	# cabeza con contorno blanco
+	draw_circle(Vector2(0, -20), 18.0, Color(1, 1, 1))
+	draw_circle(Vector2(0, -20), 15.5, Color(0.95, 0.76, 0.61))
+	# lentes oscuros
+	var lentes = StyleBoxFlat.new()
+	lentes.bg_color = Color(0.13, 0.13, 0.13)
+	lentes.set_corner_radius_all(3)
+	draw_style_box(lentes, Rect2(-10, -24, 20, 7))

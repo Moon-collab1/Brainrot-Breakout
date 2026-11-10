@@ -5,7 +5,7 @@ extends CanvasLayer
 @onready var barra_vida = $PanelVida/BarraVida
 @onready var barra_dopa = $PanelVida/BarraDopa
 @onready var texto_ola = $PanelZona/TextoOla
-@onready var texto_libres = $PanelZona/TextoLibres
+@onready var texto_libres = $PanelLibres/TextoLibres
 @onready var panel_jefe = $PanelJefe
 @onready var barra_jefe = $PanelJefe/BarraJefe
 @onready var banner = $Banner
@@ -13,6 +13,7 @@ extends CanvasLayer
 @onready var label_jefe = $PanelJefe/LabelJefe
 @onready var pantalla_cel = $SlotCelular/Pantalla
 @onready var estado_cel = $SlotCelular/Estado
+@onready var texto_imagen = $SlotCelular/Pantalla/TextoImagen
 @onready var flash = $Flash
 
 func _ready():
@@ -34,9 +35,11 @@ func _process(_delta):
 
 	if jug.cel_abierto:
 		pantalla_cel.color = Color(0.5, 0.85, 1.0)
+		texto_imagen.add_theme_color_override("font_color", Color(0.05, 0.15, 0.25))
 		estado_cel.text = "ABIERTO"
 	else:
 		pantalla_cel.color = Color(0.08, 0.08, 0.1)
+		texto_imagen.add_theme_color_override("font_color", Color(0.85, 0.85, 0.88))
 		estado_cel.text = "CERRADO"
 
 # --- Funciones para el jefe (se conectan en las Partes 3 y 4) ---
@@ -44,8 +47,7 @@ func _process(_delta):
 func mostrar_jefe(visible_):
 	if visible_:
 		label_jefe.text = "JEFE: " + get_parent().nombre_jefe
-		label_jefe.add_theme_color_override("font_color", Color(1, 0.55, 0.5))
-		label_jefe.add_theme_font_size_override("font_size", 11)   # cabe en el ancho actual
+		label_jefe.add_theme_color_override("font_color", Color(1, 0.45, 0.45))
 	panel_jefe.visible = visible_
 
 # Se conecta a la señal vida_cambiada(valor, maximo) del jefe
