@@ -14,6 +14,15 @@ extends CanvasLayer
 @onready var pantalla_cel = $SlotCelular/Pantalla
 @onready var estado_cel = $SlotCelular/Estado
 @onready var flash = $Flash
+# _ready() se ejecuta una vez cuando el HUD entra a la escena
+func _ready():
+	# Node2D.new() crea un nodo vacío, sin que exista en ninguna escena (.tscn)
+	var ct = Node2D.new()
+	# set_script() le pone nuestro script de controles táctiles. preload() carga
+	# el archivo al arrancar el juego, antes de que se necesite.
+	ct.set_script(preload("res://comun/hud/controles_tactiles.gd"))
+	# add_child() lo cuelga del HUD, y así aparece en todas las zonas que usen este HUD
+	add_child(ct)
 
 func _process(_delta):
 	barra_vida.value = jug.vida
