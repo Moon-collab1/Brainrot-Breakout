@@ -1,7 +1,8 @@
 extends CharacterBody2D
 
 # El jugador (nodo "Jugador" de cada zona). Se mueve con las flechas / joystick táctil, abre el
-# celular con ui_accept (Espacio/Enter) y da cachetadas con la acción "cachetada" (tecla X).
+# celular con la acción "celular" y da cachetadas con la acción "cachetada".
+# Las teclas de cada acción se eligen en CONFIGURACIÓN > CONTROLES (ver autoload/ajustes.gd).
 #
 # Mecánica central:
 #   - Vida y DOPAMINA (0-100). Con el celular abierto se cura (+5/s) pero sube la dopamina
@@ -57,7 +58,9 @@ func _ready():
 # Cada frame de física: lee la entrada, aplica celular/cachetada, revisa si perdió y se mueve
 func _physics_process(delta):
 	Registro.tiempo += delta
-	var dir = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	# Las acciones "mover_*", "celular" y "cachetada" las crea autoload/ajustes.gd con las teclas
+	# que el jugador eligió en CONFIGURACIÓN > CONTROLES
+	var dir = Input.get_vector("mover_izquierda", "mover_derecha", "mover_arriba", "mover_abajo")
 
 	# Control invertido: las direcciones quedan al revés mientras dure
 	if invertido_t > 0.0:
@@ -73,7 +76,7 @@ func _physics_process(delta):
 	if cel_bloqueado_t > 0.0:
 		cel_bloqueado_t -= delta
 		cel_abierto = false
-	elif Input.is_action_just_pressed("ui_accept"):
+	elif Input.is_action_just_pressed("celular"):
 		cel_abierto = not cel_abierto
 
 	var vel_act = vel
@@ -127,15 +130,20 @@ func dar_cachetada():
 	var centro = global_position + cara * desplaz   # el golpe se corre hacia donde mira
 	$Golpe.position = cara * desplaz
 	$Golpe/Dibujo.visible = true
+	var pego = false   # true si la cachetada le dio a algo (para el sonido de «hice daño»)
 	for z in get_tree().get_nodes_in_group("zombis"):
 		if centro.distance_to(z.global_position) < radio_golpe:
 			ultimo_liberado = z.scene_file_path
 			z.liberar()
 			libres += 1
+			pego = true
 	# burbujas y clones del jefe: se revientan sin sumar a libres
 	for d in get_tree().get_nodes_in_group("destruibles"):
 		if centro.distance_to(d.global_position) < radio_golpe:
 			d.reventar()
+			pego = true
+	if pego:
+		MusicaGlobal.sonar_golpe()   # sonido de «hice daño» (el del jefe lo pone musica_global.gd)
 	# los corazones del jefe ya no se pueden bloquear con la cachetada
 	# el jefe decide solo si el golpe lo alcanza (cuerpo o antena)
 	for j in get_tree().get_nodes_in_group("jefe"):

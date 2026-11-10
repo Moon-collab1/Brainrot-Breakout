@@ -2,7 +2,7 @@ extends CanvasLayer
 
 # Controles táctiles: joystick flotante (mitad izquierda) + botones CACHETADA y CELULAR.
 # Solo se activan en pantallas táctiles (celular/tableta). No toca la lógica del juego:
-# solo dispara las mismas acciones que el teclado (ui_left/right/up/down, ui_accept, cachetada).
+# solo dispara las mismas acciones que el teclado (mover_izquierda/derecha/arriba/abajo, celular, cachetada; las crea autoload/ajustes.gd).
 
 const FORZAR_TACTIL = false      # true = mostrarlos también en PC (para probar con emulate_touch_from_mouse)
 const RADIO_BASE = 85.0          # radio del círculo del joystick
@@ -88,7 +88,7 @@ func _input(event):
 				_accion("cachetada", true)
 			elif dedo_cel == -1 and p.distance_to(_pos_cel()) <= RADIO_BOTON_CEL * 1.3:
 				dedo_cel = event.index
-				_accion("ui_accept", true)
+				_accion("celular", true)
 			elif dedo_joy == -1 and p.x < _tam().x * 0.5:
 				dedo_joy = event.index
 				centro_joy = p
@@ -99,7 +99,7 @@ func _input(event):
 				_accion("cachetada", false)
 			elif event.index == dedo_cel:
 				dedo_cel = -1
-				_accion("ui_accept", false)
+				_accion("celular", false)
 			elif event.index == dedo_joy:
 				dedo_joy = -1
 				centro_joy = _joy_reposo()
@@ -118,13 +118,13 @@ func _mover(dir: Vector2):
 	if m < ZONA_MUERTA:
 		dir = Vector2.ZERO
 	else:
-		# Input.get_vector ignora lo menor a 0.5 (zona muerta de ui_*); se reescala para que
+		# Input.get_vector ignora lo menor a 0.5 (zona muerta de las acciones mover_*); se reescala para que
 		# empujar poco = ir lento y empujar todo = velocidad máxima
 		dir = dir.normalized() * (0.5 + 0.5 * clamp((m - ZONA_MUERTA) / (1.0 - ZONA_MUERTA), 0.0, 1.0))
-	_fuerza("ui_left", max(-dir.x, 0.0))
-	_fuerza("ui_right", max(dir.x, 0.0))
-	_fuerza("ui_up", max(-dir.y, 0.0))
-	_fuerza("ui_down", max(dir.y, 0.0))
+	_fuerza("mover_izquierda", max(-dir.x, 0.0))
+	_fuerza("mover_derecha", max(dir.x, 0.0))
+	_fuerza("mover_arriba", max(-dir.y, 0.0))
+	_fuerza("mover_abajo", max(dir.y, 0.0))
 
 func _fuerza(nombre: String, f: float):
 	if f > 0.01:
