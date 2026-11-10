@@ -1,5 +1,8 @@
 class_name Registro
 
+# Libres con los que se entra a la zona actual (los guarda la raíz al pasar de zona)
+static var libres_inicio = 0
+
 var ruta = "user://record.txt"
 
 func leer():

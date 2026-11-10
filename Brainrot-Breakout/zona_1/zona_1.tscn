@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://d2j8pwvvl181g"]
+
+[ext_resource type="Script" uid="uid://cyng0ot75jlqt" path="res://comun/sistema/oleadas.gd" id="1_epypp"]
+[ext_resource type="Script" uid="uid://d3vspu0ljp2hx" path="res://comun/jugador/jugador.gd" id="1_wtcfe"]
+[ext_resource type="Texture2D" uid="uid://bm24ys2gn1nw7" path="res://icon.svg" id="2_0e48y"]
+[ext_resource type="PackedScene" path="res://zona_1/mapa/Mapa.tscn" id="3_mapa"]
+[ext_resource type="PackedScene" path="res://comun/hud/HUD.tscn" id="4_hud"]
+[ext_resource type="PackedScene" path="res://zona_1/jefe/JefeInfluencer.tscn" id="5_jefe"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_awwja"]
+
+[node name="Zona1" type="Node2D"]
+script = ExtResource("1_epypp")
+escena_siguiente = "res://zona_2/zona_2.tscn"
+jefe_esc = ExtResource("5_jefe")
+
+[node name="Mapa" parent="." instance=ExtResource("3_mapa")]
+
+[node name="Jugador" type="CharacterBody2D" parent="."]
+position = Vector2(576, 324)
+collision_layer = 1
+collision_mask = 4
+script = ExtResource("1_wtcfe")
+
+[node name="Sprite2D" type="Sprite2D" parent="Jugador"]
+texture = ExtResource("2_0e48y")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Jugador"]
+
+[node name="Golpe" type="Area2D" parent="Jugador"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Jugador/Golpe"]
+shape = SubResource("CircleShape2D_awwja")
+
+[node name="Dibujo" type="Sprite2D" parent="Jugador/Golpe"]
+visible = false
+modulate = Color(1, 0, 0, 1)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("2_0e48y")
+
+[node name="HUD" parent="." instance=ExtResource("4_hud")]

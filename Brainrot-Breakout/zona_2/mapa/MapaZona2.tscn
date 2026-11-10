@@ -1,0 +1,105 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://zona_2/mapa/mapa.gd" id="1_mapa"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sofa"]
+size = Vector2(146, 56)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_maceta"]
+radius = 22.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_limite_v"]
+size = Vector2(20, 648)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_limite_arriba"]
+size = Vector2(1152, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_limite_abajo"]
+size = Vector2(1152, 20)
+
+[node name="MapaZona2" type="Node2D"]
+script = ExtResource("1_mapa")
+
+[node name="Sofa1" type="StaticBody2D" parent="." groups=["rebotables"]]
+position = Vector2(245, 262)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="Sofa1"]
+position = Vector2(0, 2)
+shape = SubResource("RectangleShape2D_sofa")
+
+[node name="Sofa2" type="StaticBody2D" parent="." groups=["rebotables"]]
+position = Vector2(245, 462)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="Sofa2"]
+position = Vector2(0, 2)
+shape = SubResource("RectangleShape2D_sofa")
+
+[node name="Sofa3" type="StaticBody2D" parent="." groups=["rebotables"]]
+position = Vector2(545, 572)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="Sofa3"]
+position = Vector2(0, 2)
+shape = SubResource("RectangleShape2D_sofa")
+
+[node name="Sofa4" type="StaticBody2D" parent="." groups=["rebotables"]]
+position = Vector2(855, 472)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="Sofa4"]
+position = Vector2(0, 2)
+shape = SubResource("RectangleShape2D_sofa")
+
+[node name="MacetaIzq" type="StaticBody2D" parent="." groups=["obstaculos"]]
+position = Vector2(60, 330)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="MacetaIzq"]
+shape = SubResource("CircleShape2D_maceta")
+
+[node name="MacetaDer" type="StaticBody2D" parent="." groups=["obstaculos"]]
+position = Vector2(1092, 330)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="MacetaDer"]
+shape = SubResource("CircleShape2D_maceta")
+
+[node name="LimiteIzq" type="StaticBody2D" parent="."]
+position = Vector2(-10, 324)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="LimiteIzq"]
+shape = SubResource("RectangleShape2D_limite_v")
+
+[node name="LimiteDer" type="StaticBody2D" parent="."]
+position = Vector2(1162, 324)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="LimiteDer"]
+shape = SubResource("RectangleShape2D_limite_v")
+
+[node name="LimiteArriba" type="StaticBody2D" parent="."]
+position = Vector2(576, 110)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="LimiteArriba"]
+shape = SubResource("RectangleShape2D_limite_arriba")
+
+[node name="LimiteAbajo" type="StaticBody2D" parent="."]
+position = Vector2(576, 658)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Colision" type="CollisionShape2D" parent="LimiteAbajo"]
+shape = SubResource("RectangleShape2D_limite_abajo")
