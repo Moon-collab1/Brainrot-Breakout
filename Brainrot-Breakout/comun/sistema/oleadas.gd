@@ -31,6 +31,7 @@ var jefe_activo = false   # mientras sea true no se lanzan oleadas nuevas
 var en_transicion = false # esperando para cambiar de zona
 
 func _ready():
+	MusicaGlobal.reproducir_juego()
 	n_ola = ola_inicial
 	for t in tamanos_iniciales:
 		oleadas.agregar_final(t)

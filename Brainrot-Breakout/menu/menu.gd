@@ -25,6 +25,7 @@ var eco
 var t = 0.0
 
 func _ready():
+	MusicaGlobal.reproducir_menu()
 	var fondo = Control.new()
 	fondo.set_script(load("res://menu/fondo_menu.gd"))
 	add_child(fondo)
