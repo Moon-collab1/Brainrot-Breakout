@@ -4,7 +4,8 @@ extends "res://comun/jefe/jefe_base.gd"
 # La lógica común está en comun/jefe/jefe_base.gd. Aquí solo están sus 4 ataques:
 #   Nube tóxica       charcos verdes de 8 s; quien los pisa recibe +dopamina continua
 #   Jeringazo         embestida con aguja; si te pincha: +20 dopamina en vez de daño de vida
-#   Control invertido tus controles quedan al revés 4 s
+#   Control invertido tus controles quedan al revés 4 s Y AL MISMO TIEMPO te persiguen
+#                     mini-cerebros (combo): tienes que esquivarlos con los controles al revés
 #   Cerebros mutantes 4 mini-cerebros rápidos que explotan al tocarte (6 en fase 2)
 # Cómo se le pega: después de cada Jeringazo queda «agotado» 3 s y ahí se le puede pegar.
 
@@ -35,6 +36,10 @@ const JERINGA_AGOTADO = 3.0      # segundos agotado después (aquí se le pega)
 const INVERTIDO_AVISO = 0.8
 const INVERTIDO_SEG = 4.0
 const INVERTIDO_SEG_F2 = 5.0
+# Combo: cerebros que salen mientras los controles están invertidos (en 2 tandas)
+const INVERTIDO_CEREBROS = 2       # cerebros por tanda
+const INVERTIDO_CEREBROS_F2 = 3
+const INVERTIDO_VEL_CEREBRO = 170.0   # más lentos que los normales (240): con los controles al revés ya es difícil
 # Cerebros mutantes
 const CEREBROS_AVISO = 0.8
 const CEREBROS_CANT = 4
@@ -162,7 +167,19 @@ func ataque_invertido(mi_id):
 	jug.invertido_t = seg   # jugador.gd invierte las direcciones mientras sea > 0
 	var hud = get_parent().get_node("HUD")
 	hud.mostrar_banner(true, "¡INVERTIDO!")
-	await esperar(seg)
+	# COMBO: mientras los controles están al revés salen cerebros en 2 tandas
+	# (una al empezar y otra a la mitad), para que el control invertido sí sea un peligro
+	var cant = INVERTIDO_CEREBROS
+	if fase == 2:
+		cant = INVERTIDO_CEREBROS_F2
+	soltar_cerebros(cant, INVERTIDO_VEL_CEREBRO)
+	await esperar(seg / 2.0)
+	if mi_id != id_ataque or muerto:
+		return   # se canceló: limpiar_ataques() ya escondió el cartel y borró los cerebros
+	soltar_cerebros(cant, INVERTIDO_VEL_CEREBRO)
+	await esperar(seg / 2.0)
+	if mi_id != id_ataque or muerto:
+		return
 	hud.mostrar_banner(false)
 
 # ---------------- Cerebros mutantes ----------------
@@ -174,15 +191,19 @@ func ataque_cerebros(mi_id):
 	var cant = CEREBROS_CANT
 	if fase == 2:
 		cant = CEREBROS_CANT_F2
+	soltar_cerebros(cant, CEREBROS_VEL)
+	print("Cerebros mutantes: ", cant)
+
+# Crea "cant" mini-cerebros alrededor del jefe (lo usan Cerebros mutantes y el combo del Control invertido)
+func soltar_cerebros(cant, velocidad):
 	for i in range(cant):
 		var c = cerebro_script.new()
 		var ang = TAU * i / cant + randf() * 0.5
 		c.position = global_position + Vector2.from_angle(ang) * RADIO_SALIDA
-		c.vel = CEREBROS_VEL
+		c.vel = velocidad
 		c.dano = CEREBROS_DANO
 		c.dopa = CEREBROS_DOPA
 		get_parent().add_child(c)
-	print("Cerebros mutantes: ", cant)
 
 # ---------------- Dibujo placeholder ----------------
 

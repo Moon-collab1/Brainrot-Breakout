@@ -13,15 +13,15 @@ const RADIO_CUERPO = 100.0
 const DANO_CONTACTO = 25.0       # vida por segundo dentro del cuerpo
 const ALCANCE_JUGADOR = 100.0    # igual a "alcance" de jugador.gd
 const TIEMPO_INTRO = 2.0
-const TIEMPO_ATURDIDO = 5.0
+const TIEMPO_ATURDIDO = 3.0       # antes 5.0: ahora es solo un respiro (aturdido ya no recibe daño)
 const PARPADEO_FINAL = 1.0       # el último segundo parpadean las insignias nuevas
 # Insignias de notificación (su vida = golpes que le faltan)
 const RADIO_ORBITA = 140.0
 const RADIO_INSIGNIA = 22.0
 const VEL_ORBITA = 40.0          # grados por segundo
 const MULT_ORBITA_F2 = 1.6       # fase 2: giran más rápido
-const DANO_INSIGNIA = 1          # vida del jefe al reventar una insignia
-const DANO_ATURDIDO = 1          # vida del jefe por cachetada estando aturdido
+const DANO_INSIGNIA = 5          # antes 1: reventar bolitas es la ÚNICA forma de quitarle vida
+const DANO_ATURDIDO = 0          # antes 1: el cuerpo ya no recibe daño (se deja en 0 por si se quiere volver)
 const TANDAS = [[3, 4, 5], [3, 4, 5], [4, 5, 6]]
 const TANDA_REPETIDA = [4, 5, 6] # cuando se acaban las tandas
 const ALFA_ESPERA = 0.3          # alfa de las insignias nuevas mientras no cuentan
@@ -601,9 +601,8 @@ func recibir_golpe(pos):
 	if muerto or estado == Estado.INTRO or estado == Estado.CAMBIANDO:
 		return
 	if estado == Estado.ATURDIDO:
-		# solo cuenta el cuerpo; las insignias nuevas todavía no
-		if pos.distance_to(global_position) <= ALCANCE_JUGADOR + RADIO_CUERPO:
-			quitar_vida(DANO_ATURDIDO)
+		# CAMBIO: aturdido no recibe daño. Las bolitas nuevas todavía no cuentan
+		# y al cuerpo nunca se le puede pegar: solo se le quita vida reventando bolitas.
 		return
 	# bloqueado: se golpea a la insignia más cercana de las que alcanza
 	var mejor = null
@@ -614,6 +613,7 @@ func recibir_golpe(pos):
 			mejor_d = d
 			mejor = ins
 	if mejor != null:
+		MusicaGlobal.sonar_golpe()   # sonido de «hice daño»: el golpe le entró a una bolita
 		mejor.poner_vida(mejor.vida - 1)
 		if mejor.vida <= 0:
 			reventar_insignia(mejor)

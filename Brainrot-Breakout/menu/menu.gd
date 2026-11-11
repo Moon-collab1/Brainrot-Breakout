@@ -2,7 +2,8 @@ extends Control
 
 # Menú principal (escena de inicio, ver project.godot). La interfaz se arma por código para que
 # sea fácil de cambiar. Cada "pantalla" es un VBoxContainer; ir_a(nombre) muestra una y oculta
-# las demás. Pantallas: principal, arcade (elegir zona), ajustes, ranking (leaderboard) y ayuda.
+# las demás. Pantallas: principal, arcade (elegir zona), ajustes, controles (elegir teclas),
+# ranking (leaderboard) y ayuda.
 #   JUGAR   -> empieza en la Zona 1 y sigue sola hasta la 6 (modo_arcade = false)
 #   ARCADE  -> juega UNA zona y al terminar vuelve aquí (modo_arcade = true)
 const NOMBRE_JUEGO = "BRAINROT BREAKOUT"
@@ -28,6 +29,10 @@ var eco
 var t = 0.0
 var cont_ranking   # aquí se dibujan las filas del ranking
 var b_ayuda        # el botón "?" de la esquina
+# Pantalla de controles
+var botones_control = {}     # acción -> botón que muestra su tecla
+var accion_esperando = ""    # acción que está esperando una tecla nueva ("" = ninguna)
+var filas_ayuda = {}         # textos de la ayuda que dependen de las teclas elegidas
 
 func _ready():
 	MusicaGlobal.reproducir_menu()
@@ -47,6 +52,7 @@ func _ready():
 	pantallas["principal"] = crear_principal()
 	pantallas["arcade"] = crear_arcade()
 	pantallas["ajustes"] = crear_ajustes()
+	pantallas["controles"] = crear_controles()
 	pantallas["ranking"] = crear_ranking()
 	pantallas["ayuda"] = crear_ayuda()
 	for p in pantallas.values():
@@ -61,15 +67,35 @@ func _process(delta):
 	titulo.pivot_offset = titulo.size / 2.0
 	titulo.scale = Vector2.ONE * (1.0 + sin(t * 2.0) * 0.015)
 
+# _input recibe las teclas ANTES que los botones del menú. Solo se usa mientras una acción
+# espera su tecla nueva: lo primero que se presione (tecla o botón del ratón) queda asignado.
+func _input(event):
+	if accion_esperando == "":
+		return
+	if event.is_action_pressed("ui_cancel"):
+		terminar_espera()      # Esc cancela sin cambiar nada
+		get_viewport().set_input_as_handled()
+		return
+	var par = Ajustes.par_de_evento(event)
+	if par != null:
+		Ajustes.set_control(accion_esperando, par)   # guarda y, si la tecla estaba en uso, intercambia
+		terminar_espera()
+		get_viewport().set_input_as_handled()   # que ese clic/tecla no active nada más
+
 func _unhandled_input(event):
 	if event.is_action_pressed("ui_cancel") and actual != "principal":
-		ir_a("principal")
+		if actual == "controles":
+			ir_a("ajustes")    # de controles se vuelve a configuración
+		else:
+			ir_a("principal")
 		get_viewport().set_input_as_handled()
 
 func ir_a(nombre):
 	actual = nombre
 	if b_ayuda != null:
 		b_ayuda.visible = (nombre == "principal")   # el "?" solo se ve en el menú principal
+	terminar_espera()          # si se sale de la pantalla de controles, se cancela la espera
+	refrescar_ayuda()          # la ayuda muestra las teclas que estén elegidas ahora
 	for k in pantallas:
 		pantallas[k].visible = (k == nombre)
 	if foco.has(nombre):
@@ -133,18 +159,29 @@ func crear_ajustes():
 	v.custom_minimum_size = Vector2(560, 0)
 	v.add_child(crear_subtitulo("CONFIGURACIÓN"))
 
-	v.add_child(crear_seccion("Sonido"))
-	v.add_child(crear_fila_volumen("Volumen general", "Master"))
-	v.add_child(crear_fila_volumen("Música", "Musica"))
-	v.add_child(crear_fila_volumen("Efectos", "Efectos"))
+	# Los ajustes van dentro de un recuadro con barra de desplazamiento (igual que la ayuda):
+	# así los botones CONTROLES y VOLVER de abajo siempre se ven, aunque la lista sea larga.
+	var scroll = ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(600, 300)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	v.add_child(scroll)
+	var lista = VBoxContainer.new()   # aquí adentro van todas las filas de ajustes
+	lista.add_theme_constant_override("separation", 12)
+	lista.custom_minimum_size = Vector2(570, 0)
+	scroll.add_child(lista)
+
+	lista.add_child(crear_seccion("Sonido"))
+	lista.add_child(crear_fila_volumen("Volumen general", "Master"))
+	lista.add_child(crear_fila_volumen("Música", "Musica"))
+	lista.add_child(crear_fila_volumen("Efectos", "Efectos"))
 	var nota = Label.new()
-	nota.text = "Música: menú y juego. Los efectos de sonido llegarán más adelante."
+	nota.text = "Música: menú, juego y celular. Efectos: cuando te hacen daño y cuando tú haces daño."
 	nota.add_theme_font_size_override("font_size", 14)
 	nota.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
 	nota.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	v.add_child(nota)
+	lista.add_child(nota)
 
-	v.add_child(crear_seccion("Accesibilidad"))
+	lista.add_child(crear_seccion("Accesibilidad"))
 	var fila = HBoxContainer.new()
 	fila.add_theme_constant_override("separation", 12)
 	fila.add_child(crear_etiqueta("Daltonismo", 170))
@@ -158,7 +195,7 @@ func crear_ajustes():
 	aplicar_estilo(op)
 	op.item_selected.connect(func(i): Ajustes.set_daltonismo(i))
 	fila.add_child(op)
-	v.add_child(fila)
+	lista.add_child(fila)
 	foco["ajustes"] = op
 
 	# Colores de muestra: el filtro es global, así se ve el efecto al instante
@@ -171,9 +208,9 @@ func crear_ajustes():
 		r.color = c
 		r.custom_minimum_size = Vector2(60, 26)
 		muestra.add_child(r)
-	v.add_child(muestra)
+	lista.add_child(muestra)
 
-	v.add_child(crear_seccion("Celular"))
+	lista.add_child(crear_seccion("Celular"))
 	var fila_cel = HBoxContainer.new()
 	fila_cel.add_theme_constant_override("separation", 12)
 	fila_cel.add_child(crear_etiqueta("Videos del celular", 170))
@@ -188,12 +225,105 @@ func crear_ajustes():
 		chk.text = "Permitir" if activo else "Bloqueado"
 		Ajustes.set_videos_celular(activo))
 	fila_cel.add_child(chk)
-	v.add_child(fila_cel)
+	lista.add_child(fila_cel)
 
-	var volver = crear_boton("VOLVER", func(): ir_a("principal"), Vector2(250, 50))
+	# abajo: botón para elegir las teclas y botón de volver, uno al lado del otro
+	var fila_botones = HBoxContainer.new()
+	fila_botones.add_theme_constant_override("separation", 16)
+	fila_botones.alignment = BoxContainer.ALIGNMENT_CENTER
+	fila_botones.add_child(crear_boton("CONTROLES", func(): ir_a("controles"), Vector2(250, 50)))
+	fila_botones.add_child(crear_boton("VOLVER", func(): ir_a("principal"), Vector2(250, 50)))
+	v.add_child(fila_botones)
+	return v
+
+# ---------- pantalla de controles ----------
+# Una fila por acción: nombre + botón con la tecla actual. Al pulsar el botón queda
+# «esperando»: la próxima tecla o botón del ratón que se presione se asigna a esa acción.
+func crear_controles():
+	var v = VBoxContainer.new()
+	v.add_theme_constant_override("separation", 12)
+	v.custom_minimum_size = Vector2(640, 0)
+	v.add_child(crear_subtitulo("CONTROLES"))
+	var nota = Label.new()
+	nota.text = "Pulsa un botón y luego la tecla (o botón del ratón) que quieras. Esc cancela."
+	nota.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	nota.add_theme_font_size_override("font_size", 16)
+	nota.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
+	v.add_child(nota)
+
+	# cuadrícula de 2 columnas: cada celda es «nombre de la acción + botón»
+	var g = GridContainer.new()
+	g.columns = 2
+	g.add_theme_constant_override("h_separation", 24)
+	g.add_theme_constant_override("v_separation", 10)
+	v.add_child(g)
+	for accion in Ajustes.ACCIONES:
+		var celda = HBoxContainer.new()
+		celda.add_theme_constant_override("separation", 10)
+		celda.add_child(crear_etiqueta(Ajustes.NOMBRES_ACCION[accion], 110))
+		var b = crear_boton("", func(): esperar_tecla(accion), Vector2(190, 44))
+		b.add_theme_font_size_override("font_size", 20)
+		celda.add_child(b)
+		g.add_child(celda)
+		botones_control[accion] = b
+		if not foco.has("controles"):
+			foco["controles"] = b
+
+	# los dos modos ya armados
+	v.add_child(crear_seccion("Modos rápidos"))
+	var modos = HBoxContainer.new()
+	modos.add_theme_constant_override("separation", 16)
+	modos.alignment = BoxContainer.ALIGNMENT_CENTER
+	var b1 = crear_boton("FLECHAS · ESPACIO · X", func(): poner_modo(Ajustes.MODO_FLECHAS), Vector2(300, 46))
+	b1.add_theme_font_size_override("font_size", 18)
+	var b2 = crear_boton("WASD · ESPACIO · CLIC DERECHO", func(): poner_modo(Ajustes.MODO_WASD), Vector2(300, 46))
+	b2.add_theme_font_size_override("font_size", 18)
+	modos.add_child(b1)
+	modos.add_child(b2)
+	v.add_child(modos)
+
+	var volver = crear_boton("VOLVER", func(): ir_a("ajustes"), Vector2(250, 50))
 	volver.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	v.add_child(volver)
+	refrescar_controles()
 	return v
+
+# Escribe en cada botón la tecla que tiene ahora su acción
+func refrescar_controles():
+	for accion in botones_control:
+		botones_control[accion].text = Ajustes.nombre_control(accion)
+
+# El botón de esa acción queda esperando la tecla nueva (la recibe _input, arriba)
+func esperar_tecla(accion):
+	refrescar_controles()
+	accion_esperando = accion
+	botones_control[accion].text = "Pulsa una tecla…"
+
+func terminar_espera():
+	accion_esperando = ""
+	refrescar_controles()
+
+func poner_modo(modo):
+	Ajustes.usar_modo(modo)
+	terminar_espera()
+
+# La pantalla de ayuda muestra las teclas que estén elegidas en este momento
+func refrescar_ayuda():
+	if filas_ayuda.is_empty():
+		return
+	# si las 4 direcciones son las flechas se escribe corto: "Flechas"
+	var son_flechas = true
+	var teclas = []
+	for accion in ["mover_arriba", "mover_abajo", "mover_izquierda", "mover_derecha"]:
+		teclas.append(Ajustes.nombre_control(accion))
+		if Ajustes.controles[accion] != Ajustes.MODO_FLECHAS[accion]:
+			son_flechas = false
+	if son_flechas:
+		filas_ayuda["mover"].text = "Flechas"
+	else:
+		filas_ayuda["mover"].text = " ".join(teclas)
+	filas_ayuda["cachetada"].text = Ajustes.nombre_control("cachetada")
+	filas_ayuda["celular"].text = Ajustes.nombre_control("celular")
 
 func abrir_ranking():
 	llenar_ranking()   # se vuelve a leer el archivo cada vez que se abre
@@ -270,10 +400,17 @@ func crear_ayuda():
 	c.add_child(crear_parrafo("Estás rodeado de zombis del scroll. Libéralos con tu cachetada de realidad y derrota al jefe de cada zona, sin perder la cabeza con el celular."))
 
 	c.add_child(crear_seccion("Controles · teclado"))
-	c.add_child(crear_fila_control("Flechas", "Moverte"))
-	c.add_child(crear_fila_control("X", "Cachetada: golpea hacia donde miras"))
-	c.add_child(crear_fila_control("Enter / Espacio", "Abrir o cerrar el celular"))
+	# las tres primeras filas muestran las teclas elegidas en CONFIGURACIÓN > CONTROLES
+	# (refrescar_ayuda() las escribe; get_child(0) es el texto de la tecla de cada fila)
+	var f_mover = crear_fila_control("", "Moverte")
+	var f_golpe = crear_fila_control("", "Cachetada: golpea hacia donde miras")
+	var f_cel = crear_fila_control("", "Abrir o cerrar el celular")
+	filas_ayuda = {"mover": f_mover.get_child(0), "cachetada": f_golpe.get_child(0), "celular": f_cel.get_child(0)}
+	c.add_child(f_mover)
+	c.add_child(f_golpe)
+	c.add_child(f_cel)
 	c.add_child(crear_fila_control("Esc", "Pausa"))
+	c.add_child(crear_parrafo("Puedes cambiar las teclas en CONFIGURACIÓN > CONTROLES."))
 
 	c.add_child(crear_seccion("Controles · celular o tablet"))
 	c.add_child(crear_fila_control("Joystick", "Moverte (lado izquierdo)"))

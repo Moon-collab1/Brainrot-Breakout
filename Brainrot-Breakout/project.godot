@@ -15,12 +15,17 @@ run/main_scene="res://menu/menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
+[audio]
+
+general/default_playback_type.web=0
+
 [autoload]
 
 Ajustes="*res://autoload/ajustes.gd"
 Pausa="*res://autoload/pausa.gd"
 Transicion="*res://autoload/transicion.gd"
 MusicaGlobal="*res://autoload/musica_global.gd"
+Muerte="*res://autoload/muerte.gd"
 
 [display]
 

@@ -18,7 +18,46 @@ const BALDOSA = 47.0
 const PASAMANOS = ["PasamanosIzq", "PasamanosDer"]
 var pos_pasamanos = {}   # última posición dibujada de cada pasamanos
 
-func _process(_delta):
+# --- Contador de pisos (arriba del ascensor) ---
+# Normalmente el ascensor sube sin parar. El jefe cambia "modo_piso" en su Sacudida de cables:
+#   "normal" sube despacio      "aviso" sube muy rápido      "caida" baja rapidísimo
+const PISO_INICIAL = 13.0
+const VEL_PISO = {"normal": 0.5, "aviso": 6.0, "caida": -8.0}   # pisos por segundo
+var modo_piso = "normal"
+var piso = PISO_INICIAL
+var piso_mostrado = -1       # último número escrito (para no reescribir el texto cada cuadro)
+var modo_mostrado = ""
+var etiqueta_piso: Label     # el texto «▲ 13»; es un Label aparte para no redibujar todo el mapa
+
+func _ready():
+	etiqueta_piso = Label.new()
+	etiqueta_piso.position = Vector2(542, 66)
+	etiqueta_piso.size = Vector2(68, 28)
+	etiqueta_piso.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	etiqueta_piso.add_theme_font_size_override("font_size", 20)
+	add_child(etiqueta_piso)
+	actualizar_piso(0.0)
+
+# Mueve el contador según el modo y actualiza el texto solo cuando cambia el número
+func actualizar_piso(delta):
+	piso = max(piso + VEL_PISO[modo_piso] * delta, 1.0)   # nunca baja del piso 1
+	var numero = int(piso)
+	if numero == piso_mostrado and modo_piso == modo_mostrado:
+		return
+	piso_mostrado = numero
+	modo_mostrado = modo_piso
+	if modo_piso == "caida":
+		etiqueta_piso.text = "▼ " + str(numero)
+		etiqueta_piso.add_theme_color_override("font_color", Color(1, 0.25, 0.25))   # rojo: cayendo
+	elif modo_piso == "aviso":
+		etiqueta_piso.text = "▲ " + str(numero)
+		etiqueta_piso.add_theme_color_override("font_color", Color(1, 0.85, 0.2))    # amarillo: algo anda mal
+	else:
+		etiqueta_piso.text = "▲ " + str(numero)
+		etiqueta_piso.add_theme_color_override("font_color", Color(0.4, 1, 0.5))     # verde: subiendo normal
+
+func _process(delta):
+	actualizar_piso(delta)
 	var cambio = false
 	for nombre in PASAMANOS:
 		var barra = get_node_or_null(nombre)
@@ -68,9 +107,9 @@ func _draw():
 	# REEMPLAZAR: puertas del ascensor (rendija oscura abajo)
 	draw_rect(Rect2(ARENA.position.x + 235, ARENA.end.y - 8, 180, 8), Color(0.1, 0.1, 0.12))
 
-	# REEMPLAZAR: indicador de piso «▼ 13» (decoración) y panel de luces de la derecha
+	# REEMPLAZAR: fondo del indicador de piso (el número lo escribe etiqueta_piso, ver arriba)
+	# y panel de luces de la derecha
 	draw_rect(Rect2(542, 68, 68, 26), Color(0.05, 0.05, 0.08))
-	draw_string(ThemeDB.fallback_font, Vector2(548, 88), "▼ 13", HORIZONTAL_ALIGNMENT_LEFT, -1, 20, Color(1, 0.25, 0.25))
 	draw_rect(Rect2(930, 260, 50, 150), Color(0.1, 0.1, 0.14))
 	for i in range(5):
 		var luz = Color(0.25, 0.25, 0.3)
