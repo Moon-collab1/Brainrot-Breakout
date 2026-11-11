@@ -12,17 +12,17 @@ extends CanvasLayer
 @onready var texto_banner = $Banner/Texto
 @onready var label_jefe = $PanelJefe/LabelJefe
 @onready var pantalla_cel = $SlotCelular/Pantalla
-@onready var estado_cel = $SlotCelular/Estado
-@onready var texto_imagen = $SlotCelular/Pantalla/TextoImagen
 @onready var flash = $Flash
 
 func _ready():
 	# Controles táctiles: solo se activan en celular/tableta (ver controles_tactiles.gd)
 	var tactil = preload("res://comun/controles_tactiles/controles_tactiles.gd").new()
 	add_child(tactil)
-	if tactil.activo:
-		$SlotCelular/TeclaCelular.text = "Botón CELULAR"
-		$SlotCelular/TeclaGolpe.text = "Botón CACHETADA"
+
+	# Pantalla del celular: video aleatorio o imagen de bloqueo (ver pantalla_celular.gd)
+	var cel = preload("res://comun/hud/pantalla_celular.gd").new()
+	cel.jug = jug
+	pantalla_cel.add_child(cel)
 
 func _process(_delta):
 	barra_vida.value = jug.vida
@@ -32,15 +32,6 @@ func _process(_delta):
 	var raiz = get_parent()
 	texto_ola.text = "ZONA " + str(raiz.numero_zona) + " · " + raiz.nombre_zona + " · OLEADA " + str(raiz.n_ola)
 	texto_libres.text = "Liberados: " + str(jug.libres) + "   Récord: " + str(mejor)
-
-	if jug.cel_abierto:
-		pantalla_cel.color = Color(0.5, 0.85, 1.0)
-		texto_imagen.add_theme_color_override("font_color", Color(0.05, 0.15, 0.25))
-		estado_cel.text = "ABIERTO"
-	else:
-		pantalla_cel.color = Color(0.08, 0.08, 0.1)
-		texto_imagen.add_theme_color_override("font_color", Color(0.85, 0.85, 0.88))
-		estado_cel.text = "CERRADO"
 
 # --- Funciones para el jefe (se conectan en las Partes 3 y 4) ---
 
