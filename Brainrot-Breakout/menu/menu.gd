@@ -1,7 +1,7 @@
 extends Control
 
 # Menú principal. La interfaz se arma por código para que sea fácil de cambiar.
-# Pantallas: principal, arcade y ajustes (el leaderboard queda desactivado por ahora).
+# Pantallas: principal, arcade, ajustes, leaderboard y ayuda.
 const NOMBRE_JUEGO = "BRAINROT BREAKOUT"
 const ESCENA_ZONA = "res://zona_%d/zona_%d.tscn"
 const COLOR_ACENTO = Color(1.0, 0.25, 0.65)
@@ -23,6 +23,8 @@ var actual = "principal"
 var titulo
 var eco
 var t = 0.0
+var cont_ranking   # aquí se dibujan las filas del ranking
+var b_ayuda        # el botón "?" de la esquina
 
 func _ready():
 	MusicaGlobal.reproducir_menu()
@@ -42,8 +44,11 @@ func _ready():
 	pantallas["principal"] = crear_principal()
 	pantallas["arcade"] = crear_arcade()
 	pantallas["ajustes"] = crear_ajustes()
+	pantallas["ranking"] = crear_ranking()
+	pantallas["ayuda"] = crear_ayuda()
 	for p in pantallas.values():
 		centro.add_child(p)
+	crear_boton_ayuda()
 	ir_a("principal")
 
 func _process(delta):
@@ -60,6 +65,8 @@ func _unhandled_input(event):
 
 func ir_a(nombre):
 	actual = nombre
+	if b_ayuda != null:
+		b_ayuda.visible = (nombre == "principal")   # el "?" solo se ve en el menú principal
 	for k in pantallas:
 		pantallas[k].visible = (k == nombre)
 	if foco.has(nombre):
@@ -69,6 +76,7 @@ func ir_a(nombre):
 func jugar():
 	Registro.libres_inicio = 0
 	Registro.modo_arcade = false
+	Registro.tiempo = 0.0
 	get_tree().change_scene_to_file(ESCENA_ZONA % [1, 1])   # sigue sola hasta la zona 6
 
 func arcade(n):
@@ -87,9 +95,7 @@ func crear_principal():
 	v.add_child(b_jugar)
 	v.add_child(crear_boton("ARCADE", func(): ir_a("arcade")))
 	v.add_child(crear_boton("CONFIGURACIÓN", func(): ir_a("ajustes")))
-	var b_lb = crear_boton("LEADERBOARD · PRONTO", func(): pass)
-	b_lb.disabled = true   # pendiente
-	v.add_child(b_lb)
+	v.add_child(crear_boton("LEADERBOARD", abrir_ranking))
 	if not OS.has_feature("web"):   # en el navegador quit() no hace nada
 		v.add_child(crear_boton("SALIR", salir))
 	foco["principal"] = b_jugar
@@ -184,6 +190,133 @@ func crear_ajustes():
 	volver.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	v.add_child(volver)
 	return v
+
+func abrir_ranking():
+	llenar_ranking()   # se vuelve a leer el archivo cada vez que se abre
+	ir_a("ranking")
+
+func crear_ranking():
+	var v = VBoxContainer.new()
+	v.add_theme_constant_override("separation", 12)
+	v.custom_minimum_size = Vector2(560, 0)
+	v.add_child(crear_subtitulo("LEADERBOARD · TOP 10"))
+	cont_ranking = VBoxContainer.new()
+	cont_ranking.add_theme_constant_override("separation", 2)
+	v.add_child(cont_ranking)
+	var volver = crear_boton("VOLVER", func(): ir_a("principal"), Vector2(250, 50))
+	volver.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	v.add_child(volver)
+	foco["ranking"] = volver
+	return v
+
+func llenar_ranking():
+	for hijo in cont_ranking.get_children():
+		hijo.queue_free()
+	var lb = Leaderboard.new()
+	if lb.lista.tam == 0:
+		var vacio = crear_etiqueta("Todavía no hay puntajes. ¡Sé el primero en ganar!", 0)
+		vacio.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cont_ranking.add_child(vacio)
+		return
+	cont_ranking.add_child(crear_fila_ranking("#", "NOMBRE", "LIBERADOS", "TIEMPO", COLOR_ACENTO))
+	for i in range(lb.lista.tam):
+		var e = lb.lista.obtener(i)
+		cont_ranking.add_child(crear_fila_ranking(str(i + 1), e.nombre, str(e.libres), Leaderboard.formato_tiempo(e.tiempo), Color.WHITE))
+
+func crear_fila_ranking(puesto, nombre, libres, tiempo, color):
+	var fila = HBoxContainer.new()
+	fila.add_theme_constant_override("separation", 12)
+	var datos = [[puesto, 40], [nombre, 220], [libres, 110], [tiempo, 90]]
+	for d in datos:
+		var l = crear_etiqueta(d[0], d[1])
+		l.add_theme_font_size_override("font_size", 16)
+		l.add_theme_color_override("font_color", color)
+		fila.add_child(l)
+	return fila
+
+func crear_boton_ayuda():
+	b_ayuda = Button.new()
+	b_ayuda.text = "?"
+	b_ayuda.tooltip_text = "Ayuda"
+	b_ayuda.custom_minimum_size = Vector2(56, 56)
+	b_ayuda.add_theme_font_size_override("font_size", 30)
+	aplicar_estilo(b_ayuda)
+	b_ayuda.pressed.connect(func(): ir_a("ayuda"))
+	add_child(b_ayuda)
+	b_ayuda.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)   # pegado a la esquina superior derecha
+	b_ayuda.offset_left = -76.0
+	b_ayuda.offset_right = -20.0
+	b_ayuda.offset_top = 20.0
+	b_ayuda.offset_bottom = 76.0
+
+func crear_ayuda():
+	var v = VBoxContainer.new()
+	v.add_theme_constant_override("separation", 10)
+	v.add_child(crear_subtitulo("AYUDA · CÓMO JUGAR"))
+	var scroll = ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(640, 290)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	v.add_child(scroll)
+	var c = VBoxContainer.new()
+	c.add_theme_constant_override("separation", 6)
+	c.custom_minimum_size = Vector2(610, 0)
+	scroll.add_child(c)
+
+	c.add_child(crear_seccion("Objetivo"))
+	c.add_child(crear_parrafo("Estás rodeado de zombis del scroll. Libéralos con tu cachetada de realidad y derrota al jefe de cada zona, sin perder la cabeza con el celular."))
+
+	c.add_child(crear_seccion("Controles · teclado"))
+	c.add_child(crear_fila_control("Flechas", "Moverte"))
+	c.add_child(crear_fila_control("X", "Cachetada: golpea hacia donde miras"))
+	c.add_child(crear_fila_control("Enter / Espacio", "Abrir o cerrar el celular"))
+	c.add_child(crear_fila_control("Esc", "Pausa"))
+
+	c.add_child(crear_seccion("Controles · celular o tablet"))
+	c.add_child(crear_fila_control("Joystick", "Moverte (lado izquierdo)"))
+	c.add_child(crear_fila_control("CACHETADA", "Golpear hacia donde miras"))
+	c.add_child(crear_fila_control("CELULAR", "Abrir o cerrar el celular"))
+	c.add_child(crear_fila_control("Botón II", "Pausa"))
+
+	c.add_child(crear_seccion("El celular"))
+	c.add_child(crear_parrafo("Con el celular abierto recuperas vida, pero la barra de dopamina sube más rápido, te mueves más lento y la pantalla se ve borrosa alrededor de ti. Con el celular cerrado, la dopamina baja poco a poco."))
+
+	c.add_child(crear_seccion("Cómo se pierde"))
+	c.add_child(crear_parrafo("Si la dopamina llega al máximo o tu vida llega a cero, pierdes y reinicias la zona. La clave es abrir el celular solo cuando lo necesitas y cerrarlo a tiempo."))
+
+	c.add_child(crear_seccion("Jefes"))
+	c.add_child(crear_parrafo("Cada 5 oleadas aparece un jefe. Cada uno tiene su propio punto débil: observa sus ataques y busca cómo golpearlo."))
+
+	c.add_child(crear_seccion("Ranking"))
+	c.add_child(crear_parrafo("Al vencer al jefe final escribes tu nombre. El ranking ordena por zombis liberados y, si hay empate, gana quien tardó menos."))
+
+	c.add_child(crear_seccion("Accesibilidad y ajustes"))
+	c.add_child(crear_parrafo("En Ajustes puedes cambiar el volumen, elegir un filtro de color para daltonismo y decidir si el celular muestra videos cortos."))
+
+	var volver = crear_boton("VOLVER", func(): ir_a("principal"), Vector2(250, 50))
+	volver.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	v.add_child(volver)
+	foco["ayuda"] = volver
+	return v
+
+func crear_parrafo(texto):
+	var l = Label.new()
+	l.text = texto
+	l.custom_minimum_size = Vector2(600, 0)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.add_theme_font_size_override("font_size", 18)
+	return l
+
+func crear_fila_control(tecla, desc):
+	var fila = HBoxContainer.new()
+	fila.add_theme_constant_override("separation", 12)
+	var k = crear_etiqueta(tecla, 190)
+	k.add_theme_color_override("font_color", COLOR_ACENTO2)
+	fila.add_child(k)
+	var d = crear_etiqueta(desc, 400)
+	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	d.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	fila.add_child(d)
+	return fila
 
 func crear_fila_volumen(texto, bus):
 	var fila = HBoxContainer.new()
