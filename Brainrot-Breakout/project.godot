@@ -17,10 +17,10 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-Ajustes="*res://comun/sistema/ajustes.gd"
-Pausa="*res://comun/sistema/pausa.gd"
-Transicion="*res://comun/sistema/transicion.gd"
-MusicaGlobal="*res://comun/sistema/musica_global.gd"
+Ajustes="*res://autoload/ajustes.gd"
+Pausa="*res://autoload/pausa.gd"
+Transicion="*res://autoload/transicion.gd"
+MusicaGlobal="*res://autoload/musica_global.gd"
 
 [display]
 

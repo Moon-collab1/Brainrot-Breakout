@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://d2j8pwvvl181g"]
 
-[ext_resource type="Script" uid="uid://cyng0ot75jlqt" path="res://comun/sistema/oleadas.gd" id="1_epypp"]
+[ext_resource type="Script" uid="uid://cyng0ot75jlqt" path="res://comun/zona/oleadas.gd" id="1_epypp"]
 [ext_resource type="Script" uid="uid://d3vspu0ljp2hx" path="res://comun/jugador/jugador.gd" id="1_wtcfe"]
 [ext_resource type="Texture2D" uid="uid://bm24ys2gn1nw7" path="res://icon.svg" id="2_0e48y"]
-[ext_resource type="PackedScene" path="res://zona_1/mapa/Mapa.tscn" id="3_mapa"]
+[ext_resource type="PackedScene" path="res://zona_1/mapa/MapaZona1.tscn" id="3_mapa"]
 [ext_resource type="PackedScene" path="res://comun/hud/HUD.tscn" id="4_hud"]
 [ext_resource type="PackedScene" path="res://zona_1/jefe/JefeInfluencer.tscn" id="5_jefe"]
 

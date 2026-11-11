@@ -14,7 +14,7 @@ func _ready():
 	layer = 0   # sobre el juego, pero debajo del HUD (capa 1) y de los controles táctiles (capa 5)
 	jug = get_parent()
 	mat = ShaderMaterial.new()
-	mat.shader = load("res://vineta.gdshader")
+	mat.shader = load("res://shaders/vineta.gdshader")
 	rect = ColorRect.new()
 	rect.material = mat
 	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE   # que no bloquee los clics

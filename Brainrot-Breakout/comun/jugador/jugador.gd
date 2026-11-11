@@ -1,20 +1,31 @@
 extends CharacterBody2D
 
+# El jugador (nodo "Jugador" de cada zona). Se mueve con las flechas / joystick táctil, abre el
+# celular con ui_accept (Espacio/Enter) y da cachetadas con la acción "cachetada" (tecla X).
+#
+# Mecánica central:
+#   - Vida y DOPAMINA (0-100). Con el celular abierto se cura (+5/s) pero sube la dopamina
+#     (+8/s) y va más lento (60 %). Con el celular cerrado la dopamina baja (-2/s).
+#   - Pierde si vida llega a 0 o dopamina a 100: se guarda el récord y se reinicia la zona.
+#   - La cachetada libera zombis en un círculo frente a él (suma a "libres") y golpea al jefe.
+#   - Los jefes y zonas del piso le aplican efectos con las variables de abajo (empuje,
+#     arrastre, mult_vel, invertido_t, cel_bloqueado_t...), que se apagan solas.
+
 # Valores visuales/colisión (para revertir: ESCALA = 1.0, RADIO = 10.0)
 const ESCALA = 0.4
 const RADIO = 20.0
 const EMPUJE_TIEMPO = 0.25   # lo que dura el empujón del Pulso del jefe
 
-var vel = 300.0
-var cel_abierto = false
+var vel = 300.0            # velocidad base (px/s)
+var cel_abierto = false    # celular abierto: cura, sube la dopamina y frena
 var vida = 100.0
-var dopa = 0.0
-var enfria = 0.0
-var libres = 0
+var dopa = 0.0             # dopamina; al llegar a 100 pierde
+var enfria = 0.0           # segundos que faltan para poder dar otra cachetada
+var libres = 0             # zombis liberados (el puntaje)
 var alcance = 100.0
-var cara = Vector2.RIGHT    # NUEVO: hacia dónde mira (última dirección en que se movió)
-var desplaz = 45.0          # NUEVO: cuánto se corre el golpe hacia donde mira
-var radio_golpe = 70.0      # NUEVO: tamaño del círculo del golpe
+var cara = Vector2.RIGHT    # hacia dónde mira (última dirección en que se movió)
+var desplaz = 45.0          # cuánto se corre el golpe hacia donde mira
+var radio_golpe = 70.0      # tamaño del círculo del golpe
 var reg = Registro.new()
 var record = 0
 var empuje = Vector2.ZERO   # velocidad extra (la pone empujar() y decae sola)
@@ -29,6 +40,7 @@ var ultimo_liberado = ""   # escena del último zombi liberado (lo copia "Recome
 var invertido_t = 0.0      # «Control invertido» del Dr. Dopamina: segundos que faltan
 var cel_bloqueado_t = 0.0  # «Apagón del celular» del Núcleo-∞: segundos que faltan
 
+# Prepara al jugador: lee el récord, recupera los libres con que llegó y crea la viñeta
 func _ready():
 	add_to_group("jugador")
 	record = reg.leer()
@@ -38,10 +50,11 @@ func _ready():
 	var forma = CircleShape2D.new()
 	forma.radius = RADIO
 	$CollisionShape2D.shape = forma
-	$Golpe/Dibujo.scale = Vector2.ONE * (radio_golpe * 2.0 / 128.0)   # NUEVO: el destello mide lo mismo que el golpe
-	add_child(preload("res://comun/jugador/vineta.gd").new())   # NUEVO: la viñeta del celular
+	$Golpe/Dibujo.scale = Vector2.ONE * (radio_golpe * 2.0 / 128.0)   # el destello mide lo mismo que el golpe
+	add_child(preload("res://comun/jugador/vineta.gd").new())   # la viñeta del celular
 
 
+# Cada frame de física: lee la entrada, aplica celular/cachetada, revisa si perdió y se mueve
 func _physics_process(delta):
 	Registro.tiempo += delta
 	var dir = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
@@ -51,7 +64,7 @@ func _physics_process(delta):
 		invertido_t -= delta
 		dir = -dir
 
-	# NUEVO: guardar hacia dónde mira (si está quieto, se queda la última dirección)
+	# guardar hacia dónde mira (si está quieto, se queda la última dirección)
 	if dir != Vector2.ZERO and dir.normalized() != cara:
 		cara = dir.normalized()
 		queue_redraw()
@@ -103,13 +116,15 @@ func empujar(desplaz):
 	empuje = desplaz * 2.0 / EMPUJE_TIEMPO
 	empuje_decae = empuje.length() / EMPUJE_TIEMPO
 
+# Fin de la partida: guarda el récord y reinicia la zona (los libres vuelven a los de la entrada)
 func perder(razon):
 	print(razon)
 	reg.guardar(libres)
 	get_tree().reload_current_scene()
 
+# Cachetada: libera zombis, revienta burbujas/clones y le avisa a los jefes dónde pegó
 func dar_cachetada():
-	var centro = global_position + cara * desplaz   # NUEVO: el golpe se corre hacia donde mira
+	var centro = global_position + cara * desplaz   # el golpe se corre hacia donde mira
 	$Golpe.position = cara * desplaz
 	$Golpe/Dibujo.visible = true
 	for z in get_tree().get_nodes_in_group("zombis"):
@@ -131,7 +146,7 @@ func dar_cachetada():
 # Modelo del jugador dibujado por código (sin textura): cabeza con lentes, cuerpo azul y sombra.
 # Para usar un PNG real, borra este _draw() y vuelve a mostrar el Sprite2D.
 func _draw():
-	# NUEVO: círculo suave que muestra dónde pega la cachetada (se corre hacia donde mira)
+	# círculo suave que muestra dónde pega la cachetada (se corre hacia donde mira)
 	draw_circle(cara * desplaz, radio_golpe, Color(1, 1, 1, 0.05))
 	# sombra en el piso
 	draw_set_transform(Vector2(0, 31), 0.0, Vector2(1.0, 0.32))

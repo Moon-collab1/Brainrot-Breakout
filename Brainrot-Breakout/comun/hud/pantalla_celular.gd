@@ -4,11 +4,11 @@ extends Control
 # Se crea desde hud.gd y se añade dentro de SlotCelular/Pantalla.
 # Respeta la pausa del juego: no usa PROCESS_MODE_ALWAYS.
 const VIDEOS = [
-	"res://comun/hud/assets/celular_1.ogv",
-	"res://comun/hud/assets/celular_2.ogv",
-	"res://comun/hud/assets/celular_3.ogv",
+	"res://assets/video/celular_1.ogv",
+	"res://assets/video/celular_2.ogv",
+	"res://assets/video/celular_3.ogv",
 ]
-const RUTA_BLOQUEO = "res://comun/hud/assets/brainrot_bloqueado.png"
+const RUTA_BLOQUEO = "res://assets/imagenes/brainrot_bloqueado.png"
 const VIDEO_TAM = Vector2(288, 512)   # tamaño real de los .ogv (9:16)
 
 var jug   # jugador; lo asigna hud.gd antes de añadir el nodo

@@ -1,3 +1,6 @@
+// Filtro de daltonismo de pantalla completa. Lo aplica autoload/ajustes.gd con un ColorRect
+// que cubre todo (capa 128). "mode": 0 = normal, 1 = protanopía, 2 = deuteranopía, 3 = tritanopía.
+// Simula cómo se ve la imagen con cada tipo para comprobar que el juego se entiende sin depender del color.
 shader_type canvas_item;
 
 uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, filter_linear_mipmap;

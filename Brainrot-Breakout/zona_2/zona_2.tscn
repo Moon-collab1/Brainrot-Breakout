@@ -1,18 +1,13 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://comun/sistema/oleadas.gd" id="1_olas"]
+[ext_resource type="Script" path="res://comun/zona/oleadas.gd" id="1_olas"]
 [ext_resource type="Script" path="res://comun/jugador/jugador.gd" id="2_jug"]
 [ext_resource type="Texture2D" uid="uid://bm24ys2gn1nw7" path="res://icon.svg" id="3_icon"]
 [ext_resource type="PackedScene" path="res://zona_2/mapa/MapaZona2.tscn" id="4_mapa"]
 [ext_resource type="PackedScene" path="res://comun/hud/HUD.tscn" id="5_hud"]
 [ext_resource type="PackedScene" path="res://zona_2/jefe/JefeAlgoritmo.tscn" id="6_jefe"]
-[ext_resource type="Shader" path="res://daltonismo.gdshader" id="shader_dalton"]
-[ext_resource type="Script" path="res://filtro_control.gd" id="script_filtro"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_golpe"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_dalton"]
-shader = ExtResource("shader_dalton")
 
 [node name="Zona2" type="Node2D"]
 script = ExtResource("1_olas")
@@ -52,14 +47,3 @@ scale = Vector2(1.5, 1.5)
 texture = ExtResource("3_icon")
 
 [node name="HUD" parent="." instance=ExtResource("5_hud")]
-
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
-
-[node name="ColorRect" type="ColorRect" parent="CanvasLayer"]
-material = SubResource("ShaderMaterial_dalton")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("script_filtro")

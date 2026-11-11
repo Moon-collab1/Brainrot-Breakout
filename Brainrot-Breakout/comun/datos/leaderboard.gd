@@ -1,5 +1,12 @@
 class_name Leaderboard
 
+# Ranking de los 10 mejores puntajes, guardado en user://leaderboard.txt (una línea por
+# jugador con el formato "nombre;libres;tiempo").
+#   - Se ordena por zombis liberados (más es mejor); si empatan, gana el que tardó menos.
+#   - Está guardado en una Lista enlazada (lista.gd) que siempre queda ordenada.
+#   - Uso: var lb = Leaderboard.new()  (carga el archivo solo)  ->  lb.agregar(nombre, libres, tiempo)
+#   - Lo muestra menu.gd (pantalla LEADERBOARD) y lo escribe victoria.gd al ganar el juego.
+
 const RUTA = "user://leaderboard.txt"
 const MAX = 10          # cuántos puestos guarda el ranking
 const MAX_NOMBRE = 12   # largo máximo del nombre

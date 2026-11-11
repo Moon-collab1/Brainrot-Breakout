@@ -1,3 +1,5 @@
+// Viñeta del celular: con el celular abierto, lo lejano al jugador se ve borroso y oscuro.
+// La controla comun/jugador/vineta.gd (le pasa centro, aspecto y fuerza cada frame).
 shader_type canvas_item;
 
 uniform sampler2D pantalla : hint_screen_texture, repeat_disable, filter_linear;

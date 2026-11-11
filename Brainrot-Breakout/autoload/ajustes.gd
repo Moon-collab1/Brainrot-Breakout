@@ -44,7 +44,7 @@ func crear_filtro():
 	capa.layer = 128
 	add_child(capa)
 	filtro_mat = ShaderMaterial.new()
-	filtro_mat.shader = load("res://daltonismo.gdshader")
+	filtro_mat.shader = load("res://shaders/daltonismo.gdshader")
 	filtro_rect = ColorRect.new()
 	filtro_rect.material = filtro_mat
 	filtro_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE   # que no bloquee los clics

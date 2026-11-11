@@ -1,6 +1,11 @@
 extends Node2D
 
-# Raíz de cada zona: lanza oleadas, invoca al jefe y pasa a la zona siguiente.
+# Raíz de cada zona (script del nodo "ZonaN" en zona_N.tscn): lanza oleadas, invoca al jefe y
+# pasa a la zona siguiente.
+#   - Cada zona es: Mapa + Jugador + HUD (+ el jefe, que se agrega al derrotar oleadas).
+#   - Las oleadas salen de una Lista (cola) con los tamaños; cada oleada nueva suma "paso_oleada".
+#   - Cada 5 oleadas viene el jefe en lugar de zombis. Al morir el jefe se limpia la zona y se
+#     pasa a "escena_siguiente" (la Zona 6 no tiene: el Núcleo muestra la victoria).
 # Los @export tienen los valores de la Zona 1; cada zona los cambia en su .tscn.
 const RADIO_ZOMBI = 20.0   # mismo valor que RADIO en zombi.gd
 const INTENTOS_SPAWN = 10
@@ -138,22 +143,13 @@ func _al_morir_jefe():
 	if escena_siguiente != "":
 		pasar_de_zona()
 
-# Guarda los libres, ejecuta la transición visual/sonora y carga la zona siguiente (en ARCADE vuelve al menú)
+# Guarda los libres y carga la zona siguiente con la transición (en ARCADE vuelve al menú)
 func pasar_de_zona():
 	en_transicion = true
 	Registro.libres_inicio = $Jugador.libres
-	
-	# Determina a dónde se va a dirigir (siguiente zona o menú en arcade)
 	var destino = Registro.MENU if Registro.modo_arcade else escena_siguiente
-	
 	if destino != "":
-		# Llama al autoload global de transición (asegúrate de haberlo registrado como Transicion)
-		if Engine.has_singleton("Transicion") or get_node_or_null("/root/Transicion"):
-			Transicion.cambiar_escena(destino)
-		else:
-			# Respaldo por si el autoload no está cargado todavía
-			await get_tree().create_timer(2.5).timeout
-			get_tree().change_scene_to_file(destino)
+		Transicion.cambiar_escena(destino)   # autoload: ver autoload/transicion.gd
 	else:
 		en_transicion = false
 

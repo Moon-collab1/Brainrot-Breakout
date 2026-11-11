@@ -1,6 +1,9 @@
 extends CharacterBody2D
 
-# Modelo del zombi: círculo verde con ojos, dibujado por código (sin textura).
+# Zombi básico. Persigue al jugador en línea recta y le quita vida si está cerca.
+# Va en el grupo "zombis": oleadas.gd cuenta cuántos quedan y jugador.gd los libera con la
+# cachetada (liberar() lo borra y el jugador suma 1 a "libres"). Su modelo es un círculo verde
+# con ojos dibujado por código (sin textura).
 const RADIO = 20.0
 
 var vel_z = 100.0
@@ -16,6 +19,7 @@ func _ready():
 func liberar():
 	queue_free()
 
+# Camina hacia el jugador (se detiene a 45 px) y le hace daño continuo a menos de 55 px
 func _physics_process(delta):
 	var jug = get_parent().get_node("Jugador")
 	var dist = position.distance_to(jug.position)

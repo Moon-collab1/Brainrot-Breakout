@@ -1,6 +1,9 @@
 extends CanvasLayer
 
-# HUD de la zona: solo lee datos del jugador y de la raíz, no tiene colisiones
+# HUD de la zona (escena comun/hud/HUD.tscn, hijo "HUD" de cada zona). Solo lee datos del jugador
+# y de la raíz de la zona (oleadas.gd), no tiene colisiones. Muestra barras de vida y dopamina,
+# zona/oleada, liberados y récord, la barra del jefe, el banner de avisos, el flash blanco y el
+# recuadro del celular. Los jefes y oleadas.gd lo usan por las funciones de abajo.
 @onready var jug = get_parent().get_node("Jugador")
 @onready var barra_vida = $PanelVida/BarraVida
 @onready var barra_dopa = $PanelVida/BarraDopa
@@ -24,6 +27,7 @@ func _ready():
 	cel.jug = jug
 	pantalla_cel.add_child(cel)
 
+# Refresca barras y textos cada frame
 func _process(_delta):
 	barra_vida.value = jug.vida
 	barra_dopa.value = jug.dopa
@@ -35,6 +39,7 @@ func _process(_delta):
 
 # --- Funciones para el jefe (se conectan en las Partes 3 y 4) ---
 
+# Muestra u oculta el panel con la barra de vida del jefe
 func mostrar_jefe(visible_):
 	if visible_:
 		label_jefe.text = "JEFE: " + get_parent().nombre_jefe
@@ -46,6 +51,7 @@ func actualizar_jefe(valor, maximo):
 	barra_jefe.max_value = maximo
 	barra_jefe.value = valor
 
+# Banner grande de avisos en pantalla (texto corto: el recuadro es pequeño)
 func mostrar_banner(visible_, texto = "¡SÍGUEME!"):
 	texto_banner.text = texto
 	banner.visible = visible_

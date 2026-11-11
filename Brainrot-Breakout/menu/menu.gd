@@ -1,7 +1,10 @@
 extends Control
 
-# Menú principal. La interfaz se arma por código para que sea fácil de cambiar.
-# Pantallas: principal, arcade, ajustes y leaderboard.
+# Menú principal (escena de inicio, ver project.godot). La interfaz se arma por código para que
+# sea fácil de cambiar. Cada "pantalla" es un VBoxContainer; ir_a(nombre) muestra una y oculta
+# las demás. Pantallas: principal, arcade (elegir zona), ajustes y ranking (leaderboard).
+#   JUGAR   -> empieza en la Zona 1 y sigue sola hasta la 6 (modo_arcade = false)
+#   ARCADE  -> juega UNA zona y al terminar vuelve aquí (modo_arcade = true)
 const NOMBRE_JUEGO = "BRAINROT BREAKOUT"
 const ESCENA_ZONA = "res://zona_%d/zona_%d.tscn"
 const COLOR_ACENTO = Color(1.0, 0.25, 0.65)
@@ -76,6 +79,7 @@ func jugar():
 
 func arcade(n):
 	Registro.libres_inicio = 0
+	Registro.tiempo = 0.0
 	Registro.modo_arcade = true   # al terminar la zona se vuelve a este menú
 	get_tree().change_scene_to_file(ESCENA_ZONA % [n, n])
 
@@ -129,7 +133,7 @@ func crear_ajustes():
 	v.add_child(crear_fila_volumen("Música", "Musica"))
 	v.add_child(crear_fila_volumen("Efectos", "Efectos"))
 	var nota = Label.new()
-	nota.text = "Todavía no hay sonido en el juego; los controles ya quedan listos."
+	nota.text = "Música: menú y juego. Los efectos de sonido llegarán más adelante."
 	nota.add_theme_font_size_override("font_size", 14)
 	nota.add_theme_color_override("font_color", Color(0.7, 0.7, 0.8))
 	nota.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
