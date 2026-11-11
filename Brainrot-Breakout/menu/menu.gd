@@ -26,6 +26,7 @@ var t = 0.0
 var cont_ranking   # aquí se dibujan las filas del ranking
 
 func _ready():
+	MusicaGlobal.reproducir_menu()
 	var fondo = Control.new()
 	fondo.set_script(load("res://menu/fondo_menu.gd"))
 	add_child(fondo)
@@ -162,6 +163,23 @@ func crear_ajustes():
 		r.custom_minimum_size = Vector2(60, 26)
 		muestra.add_child(r)
 	v.add_child(muestra)
+
+	v.add_child(crear_seccion("Celular"))
+	var fila_cel = HBoxContainer.new()
+	fila_cel.add_theme_constant_override("separation", 12)
+	fila_cel.add_child(crear_etiqueta("Videos del celular", 170))
+	var chk = CheckButton.new()
+	chk.button_pressed = Ajustes.videos_celular
+	chk.text = "Permitir" if chk.button_pressed else "Bloqueado"
+	chk.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	chk.custom_minimum_size = Vector2(0, 44)
+	chk.add_theme_font_size_override("font_size", 20)
+	aplicar_estilo(chk)
+	chk.toggled.connect(func(activo):
+		chk.text = "Permitir" if activo else "Bloqueado"
+		Ajustes.set_videos_celular(activo))
+	fila_cel.add_child(chk)
+	v.add_child(fila_cel)
 
 	var volver = crear_boton("VOLVER", func(): ir_a("principal"), Vector2(250, 50))
 	volver.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
