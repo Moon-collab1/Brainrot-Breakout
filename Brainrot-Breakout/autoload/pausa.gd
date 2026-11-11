@@ -5,10 +5,29 @@ extends CanvasLayer
 const COLOR_ACENTO = Color(1.0, 0.25, 0.65)
 const COLOR_ACENTO2 = Color(0.25, 0.9, 1.0)
 
+# Pistas que se muestran al pausar (salen de una Cola, una por pausa)
+const PISTAS = [
+	"Abre el celular para curarte, pero ciérralo a tiempo: la dopamina sube más rápido de lo que baja.",
+	"Con el celular abierto te mueves más lento y ves borroso. Evítalo cuando tengas zombis encima.",
+	"La cachetada pega hacia donde miras. Muévete hacia el zombi y golpea.",
+	"Si te quedas quieto, sigues mirando hacia el último lado al que te moviste.",
+	"Si la dopamina llega al máximo, pierdes. Cierra el celular antes de llegar al tope.",
+	"Cada 5 oleadas aparece un jefe. Observa sus ataques antes de acercarte.",
+	"Rompe la antena del Influencer para dejarlo aturdido y poder golpearlo.",
+	"El ranking premia a quien libera más zombis y tarda menos tiempo.",
+	"Poner límites de tiempo a las redes ayuda a dormir mejor y a concentrarte.",
+	"Silenciar las notificaciones reduce las ganas de revisar el celular a cada rato.",
+	"Hacer pausas lejos de la pantalla también cuenta: levántate, estírate y mira a lo lejos.",
+	"Si algo te agobia en redes, hablarlo con alguien de confianza ayuda más que seguir desplazándote.",
+]
+
 var abierta = false   # lo lee controles_tactiles.gd para no despausar el juego mientras esto está abierto
 var boton_pausa
 var panel
 var boton_continuar
+var pistas = Cola.new()   # cola de pistas: sale la primera y vuelve a llenarse al acabarse
+var lbl_pista
+var ultima_pista = ""   # la última que se mostró (para no repetirla seguida)
 
 func _ready():
 	layer = 100   # sobre el HUD y bajo el filtro de daltonismo (capa 128)
@@ -55,6 +74,17 @@ func _ready():
 	titulo.add_theme_constant_override("outline_size", 12)
 	v.add_child(titulo)
 
+	# la pista del momento (sale de la cola cada vez que se abre la pausa)
+	lbl_pista = Label.new()
+	lbl_pista.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl_pista.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_pista.custom_minimum_size = Vector2(520, 0)
+	lbl_pista.add_theme_font_size_override("font_size", 22)
+	lbl_pista.add_theme_color_override("font_color", COLOR_ACENTO2)
+	lbl_pista.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
+	lbl_pista.add_theme_constant_override("outline_size", 6)
+	v.add_child(lbl_pista)
+
 	boton_continuar = crear_boton("CONTINUAR", cerrar)
 	v.add_child(boton_continuar)
 	v.add_child(crear_boton("VOLVER AL MENÚ PRINCIPAL", al_menu))
@@ -87,6 +117,7 @@ func abrir():
 	if abierta or not en_zona():
 		return
 	abierta = true
+	lbl_pista.text = "PISTA: " + siguiente_pista()
 	panel.visible = true
 	get_tree().paused = true
 	boton_continuar.grab_focus()
@@ -95,6 +126,23 @@ func cerrar():
 	abierta = false
 	panel.visible = false
 	get_tree().paused = false
+
+# Llena la cola con todas las pistas en un orden al azar
+func llenar_pistas():
+	var orden = PISTAS.duplicate()
+	orden.shuffle()
+	for p in orden:
+		pistas.encolar(p)
+	# si la primera es la misma que se acaba de mostrar, se manda al final
+	if pistas.ver_frente() == ultima_pista:
+		pistas.encolar(pistas.desencolar())
+
+# Saca la primera pista de la cola; cuando se acaban, se llena otra vez en otro orden al azar
+func siguiente_pista():
+	if pistas.esta_vacia():
+		llenar_pistas()
+	ultima_pista = pistas.desencolar()
+	return ultima_pista
 
 func al_menu():
 	# se guarda el récord igual que al morir; el progreso de la partida se pierde
