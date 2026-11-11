@@ -2,29 +2,41 @@ extends "res://comun/jefe/jefe_base.gd"
 
 # Jefe FINAL de la Zona 6 «Núcleo-∞» (un chip gigante). No se mueve.
 # La lógica común está en comun/jefe/jefe_base.gd. Aquí solo están sus ataques:
-#   Rejilla láser      líneas rosas y cian que barren la arena; se telegrafían 1 s antes
+#   Rejilla láser      láseres ROJOS que barren la arena y hacen daño, y UN láser VERDE que
+#                      sale por otro lado de la pantalla. Si tocas primero el verde, todos
+#                      los rojos se vuelven verdes y ya no hacen daño. Así se esquiva.
 #   Tormenta de datos  lluvia de ceros y unos que forma patrones tipo bullet-hell
-#   Apagón del celular el celular se bloquea 6 s: no puedes curarte (pero la dopamina baja)
-#   Sobrecarga (fase 2) por debajo del 40 % de vida: ×1.5 de velocidad y combina láser + datos
-# Cómo se le pega: cada 3 ataques el escudo se abre (aturdido 4 s, «NÚCLEO EXPUESTO»).
+#   Sobrecarga (fase 2) por debajo del 40 % de vida: todo va ×1.5 más rápido y sale un rojo más
+# SIN CELULAR: mientras el núcleo ataca, el celular está bloqueado (no puedes curarte).
+#              Solo se puede usar cuando el núcleo está expuesto.
+# Cómo se le pega: cada 2 ataques el escudo se abre (aturdido 5 s, «NÚCLEO EXPUESTO»).
 
 # --- Balance (todo se ajusta aquí) ---
 const VIDA = 25
 const FASE2_VIDA = 10            # 40 % de 25
 const RADIO = 75.0
 const DANO_CONTACTO = 20.0
-const COOLDOWNS = {"rejilla": 8.0, "tormenta": 9.0, "apagon": 15.0}
-const NOMBRES = {"rejilla": "Rejilla láser", "tormenta": "Tormenta de datos", "apagon": "Apagón del celular"}
-const VENTANA_CADA = 3
-const VENTANA_SEG = 4.0
+const COOLDOWNS = {"rejilla": 8.0, "tormenta": 9.0}
+const NOMBRES = {"rejilla": "Rejilla láser", "tormenta": "Tormenta de datos"}
+const VENTANA_CADA = 2           # antes 3: ahora solo hay 2 ataques (el apagón ya no es un ataque)
+const VENTANA_SEG = 5.0          # antes 4: es el único momento para pegarle Y para usar el celular
 const MULT_SOBRECARGA = 1.5      # en fase 2 todo va ×1.5 más rápido
 # Rejilla láser
 const LASER_AVISO = 1.0
-const LASER_CANT = 3
-const LASER_CANT_F2 = 5
-const LASER_VEL = 140.0
+const LASER_ROJOS = 2            # láseres rojos (cada uno sale por un lado distinto)
+const LASER_ROJOS_F2 = 3         # en fase 2 salen por los 3 lados que no usa el verde
+const LASER_VEL_ROJO = 140.0     # px/s de los rojos
+const LASER_VEL_VERDE = 260.0    # el verde es más rápido: llega antes que los rojos
+const LASER_QUIETO_VERDE = 0.6   # segundos que el verde espera en su borde
+const LASER_QUIETO_ROJO = 3.2     # los rojos esperan MÁS: da tiempo de rodear los racks y correr hasta el verde
 const LASER_DANO = 15.0
-const LASER_COLORES = [Color(1.0, 0.25, 0.75), Color(0.2, 0.9, 1.0)]   # rosa y cian
+# Los 4 lados por donde puede entrar un láser: [es vertical, posición inicial, dirección]
+const LADOS = {
+	"izquierda": [true, Vector2(60, 0), 1.0],
+	"derecha": [true, Vector2(1092, 0), -1.0],
+	"arriba": [false, Vector2(0, 140), 1.0],
+	"abajo": [false, Vector2(0, 620), -1.0],
+}
 # Tormenta de datos
 const TORMENTA_AVISO = 0.8
 const TORMENTA_OLAS = 6
@@ -37,9 +49,6 @@ const COLUMNAS_X0 = 60.0         # los datos caen en columnas con un hueco por d
 const COLUMNAS_PASO = 100.0
 const COLUMNAS_N = 11
 const ANILLO_N = 14              # en cada ola par sale un anillo de datos desde el núcleo
-# Apagón del celular
-const APAGON_AVISO = 0.8
-const APAGON_SEG = 6.0
 
 var laser_script = preload("res://zona_6/jefe/ataques/laser.gd")
 var dato_script = preload("res://zona_6/jefe/ataques/dato.gd")
@@ -52,7 +61,7 @@ func configurar():
 	dano_contacto = DANO_CONTACTO
 	nombres = NOMBRES
 	cooldowns = COOLDOWNS
-	ataques_base = ["rejilla", "tormenta", "apagon"]
+	ataques_base = ["rejilla", "tormenta"]
 	ventana_cada = VENTANA_CADA
 	ventana_seg = VENTANA_SEG
 
@@ -61,14 +70,13 @@ func ejecutar_ataque(nombre, mi_id):
 		await ataque_rejilla(mi_id)
 	elif nombre == "tormenta":
 		await ataque_tormenta(mi_id)
-	elif nombre == "apagon":
-		await ataque_apagon(mi_id)
 
-# El apagón del celular solo tiene sentido si el jugador se está curando o está herido
-func cumple_condicion(nombre):
-	if nombre == "apagon":
-		return jug.cel_abierto or jug.vida < 85.0
-	return true
+# Cada frame: mientras el núcleo está atacando, el celular queda bloqueado.
+# jugador.gd cierra el celular y no deja abrirlo mientras cel_bloqueado_t sea mayor que 0;
+# aquí se renueva en cada frame, y se deja de renovar cuando el núcleo queda expuesto.
+func actualizar(_delta):
+	if estado == Estado.ATACANDO:
+		jug.cel_bloqueado_t = 0.2
 
 # Sobrecarga: en fase 2 todo es ×1.5 más rápido (también las pausas entre ataques)
 func mult():
@@ -90,37 +98,47 @@ func ataque_rejilla(mi_id):
 	await avisar(mi_id, LASER_AVISO / mult(), "rejilla")
 	if mi_id != id_ataque or muerto:
 		return
-	lanzar_rejilla()
-	# en fase 2 (sobrecarga) el láser viene combinado con datos
+	# 1) se sortean los lados: el primero es para el VERDE y los demás para los ROJOS,
+	#    así el verde nunca sale por el mismo lado que un rojo
+	var lados = LADOS.keys()
+	lados.shuffle()
+	var rojos = LASER_ROJOS
 	if fase == 2:
-		await esperar(0.6)
+		rojos = LASER_ROJOS_F2
+	var lasers = [crear_laser(lados[0], true)]
+	for i in range(rojos):
+		lasers.append(crear_laser(lados[i + 1], false))
+	print("Rejilla: verde por ", lados[0], " y ", rojos, " rojos")
+	# 2) el ataque dura hasta que desaparece el último láser (así no se mezcla con la tormenta)
+	while quedan_lasers(lasers):
+		await esperar(0.2)
 		if mi_id != id_ataque or muerto:
-			return
-		lanzar_columnas()
+			return   # se canceló: limpiar_ataques() ya borró los láseres (grupo "franjas")
 
-func lanzar_rejilla():
-	var cant = LASER_CANT
-	if fase == 2:
-		cant = LASER_CANT_F2
-	for i in range(cant):
-		var l = laser_script.new()
-		l.vertical = randf() < 0.5
-		l.color = LASER_COLORES[i % LASER_COLORES.size()]
-		l.vel = LASER_VEL * mult()
-		l.dano = LASER_DANO
-		l.aviso = 0.0   # el aviso ya pasó (avisar); desde aquí el láser está activo
-		# arranca en un borde y barre hacia el otro
-		if l.vertical:
-			l.dir = 1.0 if randf() < 0.5 else -1.0
-			l.position = Vector2(100.0 if l.dir > 0 else 1050.0, 0.0)
-			l.position.x += randf_range(-40.0, 40.0)
-		else:
-			l.dir = 1.0 if randf() < 0.5 else -1.0
-			l.position = Vector2(0.0, 150.0 if l.dir > 0 else 600.0)
-			l.position.y += randf_range(-20.0, 20.0)
-		get_parent().add_child(l)
-		get_parent().move_child(l, 1)
-	print("Rejilla: ", cant, " láseres")
+func quedan_lasers(lasers):
+	for l in lasers:
+		if is_instance_valid(l):
+			return true
+	return false
+
+# Crea un láser que entra por "lado". es_verde = true: el que neutraliza a los rojos
+func crear_laser(lado, es_verde):
+	var datos = LADOS[lado]
+	var l = laser_script.new()
+	l.vertical = datos[0]
+	l.position = datos[1]
+	l.dir = datos[2]
+	l.verde = es_verde
+	l.dano = LASER_DANO
+	if es_verde:
+		l.vel = LASER_VEL_VERDE * mult()
+		l.aviso = LASER_QUIETO_VERDE
+	else:
+		l.vel = LASER_VEL_ROJO * mult()
+		l.aviso = LASER_QUIETO_ROJO   # no se acorta en fase 2: siempre hay tiempo de llegar al verde
+	get_parent().add_child(l)
+	get_parent().move_child(l, 1)   # en el piso, justo encima del Mapa
+	return l
 
 # ---------------- Tormenta de datos ----------------
 
@@ -164,18 +182,6 @@ func crear_dato(pos, velocidad):
 		d.texto = "0"
 	get_parent().add_child(d)
 
-# ---------------- Apagón del celular ----------------
-
-func ataque_apagon(mi_id):
-	await avisar(mi_id, APAGON_AVISO / mult(), "apagon")
-	if mi_id != id_ataque or muerto:
-		return
-	jug.cel_bloqueado_t = APAGON_SEG   # jugador.gd cierra el celular y no deja abrirlo
-	var hud = get_parent().get_node("HUD")
-	hud.mostrar_banner(true, "¡SIN CELULAR!")
-	await esperar(APAGON_SEG)
-	hud.mostrar_banner(false)
-
 # ---------------- Dibujo placeholder ----------------
 # Chip con anillo magenta. Reemplazar por el PNG real del Núcleo.
 
@@ -211,3 +217,6 @@ func _draw():
 	draw_string(ThemeDB.fallback_font, Vector2(-45, 70), "∞ CORE", HORIZONTAL_ALIGNMENT_CENTER, 90, 14, Color(0.7, 0.75, 1.0))
 	if expuesto:
 		draw_string(ThemeDB.fallback_font, Vector2(-80, -110), "¡NÚCLEO EXPUESTO!", HORIZONTAL_ALIGNMENT_CENTER, 160, 16, Color(1, 1, 0.4))
+	elif estado == Estado.ATACANDO:
+		# aviso fijo mientras ataca: el celular está bloqueado
+		draw_string(ThemeDB.fallback_font, Vector2(-80, -110), "SIN CELULAR", HORIZONTAL_ALIGNMENT_CENTER, 160, 16, Color(1, 0.45, 0.45))
