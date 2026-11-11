@@ -15,6 +15,7 @@ extends CharacterBody2D
 # Valores visuales/colisión (para revertir: ESCALA = 1.0, RADIO = 10.0)
 const ESCALA = 0.4
 const RADIO = 20.0
+const GOLPE_DURA = 0.18      # segundos que dura la animación de la cachetada (la mano cruzando)
 const EMPUJE_TIEMPO = 0.25   # lo que dura el empujón del Pulso del jefe
 
 var vel = 300.0            # velocidad base (px/s)
@@ -40,6 +41,7 @@ var ultimo_liberado = ""   # escena del último zombi liberado (lo copia "Recome
 # Efectos de los jefes de las zonas 4 a 6 (se apagan solos al llegar a 0)
 var invertido_t = 0.0      # «Control invertido» del Dr. Dopamina: segundos que faltan
 var cel_bloqueado_t = 0.0  # «Apagón del celular» del Núcleo-∞: segundos que faltan
+var golpe_t = 0.0          # tiempo que le queda a la animación de la cachetada (0 = no está pegando)
 
 # Prepara al jugador: lee el récord, recupera los libres con que llegó y crea la viñeta
 func _ready():
@@ -51,7 +53,7 @@ func _ready():
 	var forma = CircleShape2D.new()
 	forma.radius = RADIO
 	$CollisionShape2D.shape = forma
-	$Golpe/Dibujo.scale = Vector2.ONE * (radio_golpe * 2.0 / 128.0)   # el destello mide lo mismo que el golpe
+	$Golpe/Dibujo.visible = false   # ya no se usa el logo de Godot: la cachetada se dibuja en _draw()
 	add_child(preload("res://comun/jugador/vineta.gd").new())   # la viñeta del celular
 
 
@@ -86,6 +88,11 @@ func _physics_process(delta):
 		dopa += 8 * delta
 	else:
 		dopa -= 2 * delta
+
+	# animación de la cachetada: mientras dure, se redibuja cada frame para mover la mano
+	if golpe_t > 0.0:
+		golpe_t = max(golpe_t - delta, 0.0)
+		queue_redraw()
 
 	enfria -= delta
 	if Input.is_action_just_pressed("cachetada") and enfria <= 0.0:
@@ -128,8 +135,8 @@ func perder(razon):
 # Cachetada: libera zombis, revienta burbujas/clones y le avisa a los jefes dónde pegó
 func dar_cachetada():
 	var centro = global_position + cara * desplaz   # el golpe se corre hacia donde mira
-	$Golpe.position = cara * desplaz
-	$Golpe/Dibujo.visible = true
+	golpe_t = GOLPE_DURA   # arranca la animación de la mano (se dibuja en _draw())
+	queue_redraw()
 	var pego = false   # true si la cachetada le dio a algo (para el sonido de «hice daño»)
 	for z in get_tree().get_nodes_in_group("zombis"):
 		if centro.distance_to(z.global_position) < radio_golpe:
@@ -148,8 +155,6 @@ func dar_cachetada():
 	# el jefe decide solo si el golpe lo alcanza (cuerpo o antena)
 	for j in get_tree().get_nodes_in_group("jefe"):
 		j.recibir_golpe(centro)
-	await get_tree().create_timer(0.15).timeout
-	$Golpe/Dibujo.visible = false
 
 # Modelo del jugador dibujado por código (sin textura): cabeza con lentes, cuerpo azul y sombra.
 # Para usar un PNG real, borra este _draw() y vuelve a mostrar el Sprite2D.
@@ -175,3 +180,45 @@ func _draw():
 	lentes.bg_color = Color(0.13, 0.13, 0.13)
 	lentes.set_corner_radius_all(3)
 	draw_style_box(lentes, Rect2(-10, -24, 20, 7))
+	dibujar_cachetada()
+
+# Animación de la cachetada: la mano cruza rápido de un lado al otro del círculo del golpe.
+# El círculo que se ilumina es EXACTAMENTE el área que hace daño (centro = cara * desplaz,
+# radio = radio_golpe), así lo que se ve es lo mismo que lo que pega.
+func dibujar_cachetada():
+	if golpe_t <= 0.0:
+		return
+	var avance = 1.0 - golpe_t / GOLPE_DURA        # va de 0 (empieza) a 1 (termina)
+	var centro = cara * desplaz                    # centro del área de daño
+	var lado = cara.orthogonal()                   # dirección «de costado» respecto a donde mira
+	var piel = Color(0.95, 0.76, 0.61)
+	# 1) el área de daño se enciende y se va apagando
+	draw_circle(centro, radio_golpe, Color(1, 1, 1, 0.22 * (1.0 - avance)))
+	draw_arc(centro, radio_golpe, 0.0, TAU, 40, Color(1, 1, 1, 0.7 * (1.0 - avance)), 2.0)
+	# 2) recorrido de la mano: cruza el círculo de un borde al otro, haciendo una curva hacia adelante
+	var puntos = PackedVector2Array()
+	var pasos = 10
+	for i in range(pasos + 1):
+		var f = avance * i / pasos                 # solo se dibuja hasta donde va la mano
+		puntos.append(punto_cachetada(f, centro, lado))
+	# 3) la estela: una raya blanca gruesa que sigue a la mano (se nota el movimiento rápido)
+	if puntos.size() >= 2:
+		draw_polyline(puntos, Color(1, 1, 1, 0.55), 14.0)
+		draw_polyline(puntos, Color(1, 1, 1, 0.9), 4.0)
+	# 4) el brazo y la mano abierta
+	var mano = punto_cachetada(avance, centro, lado)
+	draw_line(Vector2(0, 2), mano, Color(0.23, 0.51, 0.96), 9.0)   # manga azul, igual que el cuerpo
+	draw_line(Vector2(0, 2), mano, Color(1, 1, 1), 2.0)
+	draw_circle(mano, 11.0, Color(1, 1, 1))
+	draw_circle(mano, 9.0, piel)
+	# dedos: tres rayitas hacia adelante
+	for d in [-0.5, 0.0, 0.5]:
+		var punta = mano + (cara.rotated(d)) * 16.0
+		draw_line(mano, punta, Color(1, 1, 1), 6.0)
+		draw_line(mano, punta, piel, 4.0)
+
+# Posición de la mano cuando la cachetada lleva una fracción "f" (0 a 1) del recorrido
+func punto_cachetada(f, centro, lado):
+	var costado = lerp(-radio_golpe * 0.85, radio_golpe * 0.85, f)   # de un borde al otro
+	var adelante = sin(f * PI) * radio_golpe * 0.35                  # la curva: en el medio va más adelante
+	return centro + lado * costado + cara * adelante
