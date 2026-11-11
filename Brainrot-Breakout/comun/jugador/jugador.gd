@@ -103,9 +103,9 @@ func _physics_process(delta):
 	dopa = clamp(dopa, 0.0, 100.0)
 
 	if dopa >= 100.0:
-		perder("Perdiste por dopamina")
+		perder("Perdiste por dopamina: el celular te ganó")
 	if vida <= 0.0:
-		perder("Perdiste por vida")
+		perder("Perdiste por vida: los zombis te alcanzaron")
 
 	# los temporizadores cortos apagan el arrastre y la lentitud si la zona ya no los renueva
 	if arrastre_t > 0.0:
@@ -126,11 +126,15 @@ func empujar(desplaz):
 	empuje = desplaz * 2.0 / EMPUJE_TIEMPO
 	empuje_decae = empuje.length() / EMPUJE_TIEMPO
 
-# Fin de la partida: guarda el récord y reinicia la zona (los libres vuelven a los de la entrada)
+# Fin de la partida: guarda el récord y muestra la pantalla de muerte (autoload Muerte).
+# Ella congela el juego y deja elegir REINTENTAR (recarga la zona, los libres vuelven a los de
+# la entrada) o MENÚ. Antes aquí se reiniciaba la zona de golpe, sin avisar.
 func perder(razon):
+	if Muerte.activa:
+		return   # vida y dopamina pueden llegar a 0 en el mismo cuadro: se avisa una sola vez
 	print(razon)
 	reg.guardar(libres)
-	get_tree().reload_current_scene()
+	Muerte.mostrar(razon, libres)
 
 # Cachetada: libera zombis, revienta burbujas/clones y le avisa a los jefes dónde pegó
 func dar_cachetada():

@@ -25,6 +25,7 @@ Ajustes="*res://autoload/ajustes.gd"
 Pausa="*res://autoload/pausa.gd"
 Transicion="*res://autoload/transicion.gd"
 MusicaGlobal="*res://autoload/musica_global.gd"
+Muerte="*res://autoload/muerte.gd"
 
 [display]
 

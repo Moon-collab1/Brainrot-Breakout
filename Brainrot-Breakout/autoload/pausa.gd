@@ -104,9 +104,10 @@ func _unhandled_input(event):
 			abrir()
 		get_viewport().set_input_as_handled()
 
-# La pantalla de victoria (victoria.gd) ya congela el juego: ahí no se abre la pausa
+# La pantalla de victoria (victoria.gd) y la de muerte (muerte.gd) ya congelan el juego:
+# en ninguna de las dos se abre la pausa
 func en_victoria():
-	return not get_tree().get_nodes_in_group("victoria").is_empty()
+	return Muerte.activa or not get_tree().get_nodes_in_group("victoria").is_empty()
 
 # Una zona es cualquier escena con Jugador y HUD (el menú principal no los tiene)
 func en_zona():
