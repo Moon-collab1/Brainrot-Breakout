@@ -1,7 +1,11 @@
 extends Control
 
 # Menú principal. La interfaz se arma por código para que sea fácil de cambiar.
+<<<<<<< HEAD
 # Pantallas: principal, arcade, ajustes, leaderboard y ayuda.
+=======
+# Pantallas: principal, arcade, ajustes y leaderboard.
+>>>>>>> rama-leaderboard-nombre
 const NOMBRE_JUEGO = "BRAINROT BREAKOUT"
 const ESCENA_ZONA = "res://zona_%d/zona_%d.tscn"
 const COLOR_ACENTO = Color(1.0, 0.25, 0.65)
@@ -24,7 +28,10 @@ var titulo
 var eco
 var t = 0.0
 var cont_ranking   # aquí se dibujan las filas del ranking
+<<<<<<< HEAD
 var b_ayuda        # el botón "?" de la esquina
+=======
+>>>>>>> rama-leaderboard-nombre
 
 func _ready():
 	MusicaGlobal.reproducir_menu()
@@ -45,7 +52,10 @@ func _ready():
 	pantallas["arcade"] = crear_arcade()
 	pantallas["ajustes"] = crear_ajustes()
 	pantallas["ranking"] = crear_ranking()
+<<<<<<< HEAD
 	pantallas["ayuda"] = crear_ayuda()
+=======
+>>>>>>> rama-leaderboard-nombre
 	for p in pantallas.values():
 		centro.add_child(p)
 	crear_boton_ayuda()
@@ -234,6 +244,7 @@ func crear_fila_ranking(puesto, nombre, libres, tiempo, color):
 		fila.add_child(l)
 	return fila
 
+<<<<<<< HEAD
 func crear_boton_ayuda():
 	b_ayuda = Button.new()
 	b_ayuda.text = "?"
@@ -318,6 +329,8 @@ func crear_fila_control(tecla, desc):
 	fila.add_child(d)
 	return fila
 
+=======
+>>>>>>> rama-leaderboard-nombre
 func crear_fila_volumen(texto, bus):
 	var fila = HBoxContainer.new()
 	fila.add_theme_constant_override("separation", 12)
