@@ -62,17 +62,21 @@ func _ready():
 
 func _process(_delta):
 	# el botón "II" solo aparece dentro de una zona y con la pausa cerrada
-	boton_pausa.visible = en_zona() and not abierta
+	boton_pausa.visible = en_zona() and not abierta and not en_victoria()
 	if abierta and not en_zona():
 		cerrar()   # por seguridad, si la escena cambió con la pausa abierta
 
 func _unhandled_input(event):
-	if event.is_action_pressed("ui_cancel") and en_zona():
+	if event.is_action_pressed("ui_cancel") and en_zona() and not en_victoria():
 		if abierta:
 			cerrar()
 		else:
 			abrir()
 		get_viewport().set_input_as_handled()
+
+# La pantalla de victoria (victoria.gd) ya congela el juego: ahí no se abre la pausa
+func en_victoria():
+	return not get_tree().get_nodes_in_group("victoria").is_empty()
 
 # Una zona es cualquier escena con Jugador y HUD (el menú principal no los tiene)
 func en_zona():

@@ -31,7 +31,7 @@ autoload/                Singletons que viven todo el juego (se registran en pro
   pausa.gd                 Menú de pausa y botón "II"
   transicion.gd            Fundido a negro entre zonas
   musica_global.gd         Música de menú y de juego
-menu/                    Menú principal (JUGAR, ARCADE, CONFIGURACIÓN, LEADERBOARD) y su fondo animado
+menu/                    Menú principal (JUGAR, ARCADE, CONFIGURACIÓN, LEADERBOARD, ayuda «?») y su fondo animado
 comun/                   Lo que comparten todas las zonas
   zona/oleadas.gd          Script raíz de cada zona: oleadas, invocar jefe, pasar de zona
   jugador/                 Jugador (jugador.gd) y viñeta del celular
