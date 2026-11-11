@@ -6,6 +6,9 @@ static var libres_inicio = 0
 # true cuando se entró por ARCADE: al terminar la zona se vuelve al menú principal
 static var modo_arcade = false
 
+# Segundos de juego acumulados en el modo historia (pasan de una zona a otra)
+static var tiempo = 0.0
+
 const MENU = "res://menu/menu.tscn"
 
 var ruta = "user://record.txt"
