@@ -63,6 +63,7 @@ func _physics_process(delta):
 	# Las acciones "mover_*", "celular" y "cachetada" las crea autoload/ajustes.gd con las teclas
 	# que el jugador eligió en CONFIGURACIÓN > CONTROLES
 	var dir = Input.get_vector("mover_izquierda", "mover_derecha", "mover_arriba", "mover_abajo")
+	
 
 	# Control invertido: las direcciones quedan al revés mientras dure
 	if invertido_t > 0.0:
