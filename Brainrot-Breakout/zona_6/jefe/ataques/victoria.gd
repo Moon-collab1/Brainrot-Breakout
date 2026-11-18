@@ -16,6 +16,7 @@ var campo: LineEdit
 var jug
 var libres = 0
 var tiempo = 0.0
+var nivel = 1
 var listo = false   # evita guardar dos veces (botón + Enter)
 
 func _ready():
@@ -27,6 +28,7 @@ func _ready():
 	jug.reg.guardar(jug.libres)
 	libres = jug.libres
 	tiempo = Registro.tiempo
+	nivel = jug.nivel
 	# El Banner del HUD mide 282x86 (fuente 28): solo cabe "¡GANASTE!". El mensaje largo va en
 	# un Label propio de esta escena (no se toca el HUD) y se borra solo al cambiar de escena.
 	zona.get_node("HUD").mostrar_banner(true, "¡GANASTE!")
@@ -77,6 +79,17 @@ func pedir_nombre():
 	centro.add_child(v)
 	v.add_child(crear_label("¡GANASTE!", 56))
 	v.add_child(crear_label("Liberados: %d   Tiempo: %s" % [libres, Leaderboard.formato_tiempo(tiempo)], 24))
+	# skin con la que terminaste
+	var fila = HBoxContainer.new()
+	fila.alignment = BoxContainer.ALIGNMENT_CENTER
+	fila.add_theme_constant_override("separation", 12)
+	var img = TextureRect.new()
+	img.texture = Leaderboard.retrato(nivel)
+	img.custom_minimum_size = Vector2(84, 96)
+	img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	fila.add_child(img)
+	fila.add_child(crear_label("Nivel %d · %s" % [nivel, Leaderboard.NOMBRES_NIVEL[nivel - 1]], 26))
+	v.add_child(fila)
 	v.add_child(crear_label("Escribe tu nombre para el ranking", 20))
 	campo = LineEdit.new()
 	campo.max_length = Leaderboard.MAX_NOMBRE
@@ -112,10 +125,11 @@ func guardar_nombre(_texto = ""):
 		return   # evita guardar dos veces si se toca el botón y Enter a la vez
 	listo = true
 	var lb = Leaderboard.new()
-	lb.agregar(campo.text, libres, tiempo)   # si el nombre viene vacío, queda "ANONIMO"
+	lb.agregar(campo.text, libres, tiempo, nivel)   # si el nombre viene vacío, queda "ANONIMO"
 	salir()
 
 func salir():
 	get_tree().paused = false
 	Registro.libres_inicio = 0   # la próxima partida empieza de cero
+	Registro.xp_inicio = 0
 	get_tree().change_scene_to_file(Registro.MENU)
