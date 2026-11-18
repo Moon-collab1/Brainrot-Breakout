@@ -15,8 +15,29 @@ extends CharacterBody2D
 # Valores visuales/colisión (para revertir: ESCALA = 1.0, RADIO = 10.0)
 const ESCALA = 0.4
 const RADIO = 20.0
+const POSE_DURA = 0.3        # segundos que el sprite muestra la cachetada (carga, barrido, impacto, remate)
 const GOLPE_DURA = 0.18      # segundos que dura la animación de la cachetada (la mano cruzando)
 const EMPUJE_TIEMPO = 0.25   # lo que dura el empujón del Pulso del jefe
+# Sprite animado (assets/sprites/jugador_N.png, una hoja por nivel: 0-3 quieto, 4-9 caminando, 10-13 cachetada).
+# Para volver al dibujo por código: USAR_SPRITES = false
+const USAR_SPRITES = true
+# Una hoja por nivel: la skin mejora al subir de nivel con XP (1 normal ... 6-10 cada vez más fuerte: músculos, vendas, cinturón de campeón, armadura)
+const HOJAS_NIVEL = [
+	preload("res://assets/sprites/jugador_1.png"),
+	preload("res://assets/sprites/jugador_2.png"),
+	preload("res://assets/sprites/jugador_3.png"),
+	preload("res://assets/sprites/jugador_4.png"),
+	preload("res://assets/sprites/jugador_5.png"),
+	preload("res://assets/sprites/jugador_6.png"),
+	preload("res://assets/sprites/jugador_7.png"),
+	preload("res://assets/sprites/jugador_8.png"),
+	preload("res://assets/sprites/jugador_9.png"),
+	preload("res://assets/sprites/jugador_10.png"),
+	preload("res://assets/sprites/jugador_11.png"),
+	preload("res://assets/sprites/jugador_12.png"),
+]
+const XP_NIVELES = [0, 90, 220, 380, 570, 790, 1040, 1320, 1630, 1980, 2380, 2820]   # 12 niveles   # XP que hace falta para cada nivel (1 a 10)
+const NOMBRES_NIVEL = ["Novato", "Callejero", "Desconectado", "Leyenda", "Libre total", "Entrenado", "Boxeador", "Campeón", "Blindado", "Titán", "Coloso", "Leyenda Suprema"]
 
 var vel = 300.0            # velocidad base (px/s)
 var cel_abierto = false    # celular abierto: cura, sube la dopamina y frena
@@ -41,7 +62,23 @@ var ultimo_liberado = ""   # escena del último zombi liberado (lo copia "Recome
 # Efectos de los jefes de las zonas 4 a 6 (se apagan solos al llegar a 0)
 var invertido_t = 0.0      # «Control invertido» del Dr. Dopamina: segundos que faltan
 var cel_bloqueado_t = 0.0  # «Apagón del celular» del Núcleo-∞: segundos que faltan
+var xp = 0                # experiencia (se recoge de los celulares y audífonos del piso)
+var nivel = 1             # 1 a 12, sale de XP_NIVELES
+var racha = 0             # objetos recogidos seguidos (sin pasar más de RACHA_SEG entre uno y otro)
+var t_racha = 0.0
+const RACHA_SEG = 1.6
+var cel_trans = 0.0       # > 0 mientras saca o guarda el celular (animación de la mano)
+var cel_antes = false     # para saber si el celular se acaba de abrir o cerrar
+const CEL_TRANS = 0.22
+var pose_golpe = 0.0      # tiempo que le queda a la pose de cachetada del sprite (cuadros 10-13)
 var golpe_t = 0.0          # tiempo que le queda a la animación de la cachetada (0 = no está pegando)
+# Animación y efectos visuales
+var spr: Sprite2D          # el sprite animado (se crea en _ready)
+var anim_t = 0.0           # reloj de la animación
+var vida_ant = 100.0       # vida del cuadro anterior (para saber si lo golpearon)
+var dano_t = 0.0           # mientras sea > 0 el sprite se ve rojo (recibió daño)
+var dano_aviso_t = 0.0     # espera entre un destello de pantalla y el siguiente
+var polvo_t = 0.0          # espera entre una nubecita de polvo y la siguiente
 
 # Prepara al jugador: lee el récord, recupera los libres con que llegó y crea la viñeta
 func _ready():
@@ -49,7 +86,17 @@ func _ready():
 	record = reg.leer()
 	libres = Registro.libres_inicio   # los libres con que se entró a la zona
 	$Sprite2D.scale = Vector2(ESCALA, ESCALA)
-	$Sprite2D.visible = false   # ahora el jugador se dibuja en _draw() (ver abajo)
+	$Sprite2D.visible = false   # el icono de Godot ya no se usa
+	if USAR_SPRITES:
+		spr = Sprite2D.new()
+		xp = Registro.xp_inicio
+		nivel = nivel_de(xp)
+		spr.texture = HOJAS_NIVEL[nivel - 1]
+		spr.scale = Vector2.ONE * escala_nivel()
+		spr.position.y = pies_nivel()
+		spr.hframes = 30   # 0-3 quieto, 4-9 caminando, 10-13 cachetada, 14-15 sacar celular, 16-19 scroll, 20-25 caminando con celular, 26-29 cachetada con celular
+		spr.frame = 0
+		add_child(spr)
 	var forma = CircleShape2D.new()
 	forma.radius = RADIO
 	$CollisionShape2D.shape = forma
@@ -94,6 +141,8 @@ func _physics_process(delta):
 		golpe_t = max(golpe_t - delta, 0.0)
 		queue_redraw()
 
+	animar(delta)
+
 	enfria -= delta
 	if Input.is_action_just_pressed("cachetada") and enfria <= 0.0:
 		enfria = 0.4
@@ -121,6 +170,142 @@ func _physics_process(delta):
 	empuje = empuje.move_toward(Vector2.ZERO, empuje_decae * delta)
 	move_and_slide()   # respeta autos, basureros y muros aunque haya empuje
 
+# Elige el cuadro del sprite, lo voltea hacia donde mira, lo pone rojo si lo golpean y suelta polvo
+func animar(delta):
+	# ¿le quitaron vida? (los zombis y el jefe se la restan directo a "vida")
+	if vida < vida_ant - 0.02:
+		dano_t = 0.16
+		if dano_aviso_t <= 0.0:
+			dano_aviso_t = 0.6
+			Fx.destello(Color(1, 0.1, 0.1), 0.16, 0.25)
+			Fx.temblor(3.0, 0.12)
+			Fx.chispas(global_position + Vector2(0, -10), Color(1, 0.35, 0.35), 6, 130.0, 0.35, 4.0)
+	vida_ant = vida
+	dano_t = max(dano_t - delta, 0.0)
+	dano_aviso_t = max(dano_aviso_t - delta, 0.0)
+
+	t_racha = max(t_racha - delta, 0.0)
+	if t_racha <= 0.0:
+		racha = 0
+	var camina = velocity.length() > 20.0
+	anim_t += delta
+	if camina:
+		polvo_t -= delta
+		if polvo_t <= 0.0:
+			polvo_t = 0.16
+			Fx.polvo(global_position + Vector2(-cara.x * 6.0, 30.0))
+	if spr == null:
+		return
+	pose_golpe = max(pose_golpe - delta, 0.0)
+	# ¿se acaba de abrir o cerrar el celular? -> la mano lo saca del bolsillo o lo guarda
+	if cel_abierto != cel_antes:
+		cel_antes = cel_abierto
+		cel_trans = CEL_TRANS
+		Fx.sonar("whoosh", 1.6 if cel_abierto else 1.3, -10.0)
+	cel_trans = max(cel_trans - delta, 0.0)
+	if pose_golpe > 0.0:
+		# carga -> barrido -> impacto (se sostiene) -> remate. Con el celular abierto pega con la
+		# otra mano mientras sigue mirando el celular (cuadros 26-29)
+		var t = POSE_DURA - pose_golpe
+		var base = 26 if cel_abierto else 10
+		spr.frame = base + (0 if t < 0.05 else (1 if t < 0.09 else (2 if t < 0.22 else 3)))
+	elif cel_trans > 0.0:
+		# sacar: bolsillo (14) -> subiendo (15); guardar: al revés
+		var mitad = cel_trans > CEL_TRANS / 2.0
+		if cel_abierto:
+			spr.frame = 14 if mitad else 15
+		else:
+			spr.frame = 15 if mitad else 14
+	elif cel_abierto:
+		# mirando el celular y haciendo scroll con el pulgar
+		if camina:
+			spr.frame = 20 + int(anim_t * 10.0) % 6
+		else:
+			spr.frame = 16 + int(anim_t * 6.0) % 4
+	elif camina:
+		spr.frame = 4 + int(anim_t * 12.0) % 6
+	else:
+		spr.frame = int(anim_t * 5.0) % 4
+	if abs(cara.x) > 0.2:
+		spr.flip_h = cara.x < 0.0
+	# rojo si lo golpearon, azulado si tiene el celular abierto
+	if dano_t > 0.0:
+		spr.modulate = Color(1.0, 0.45, 0.45)
+	elif cel_abierto:
+		spr.modulate = Color(0.8, 0.9, 1.0)
+	else:
+		spr.modulate = Color(1, 1, 1)
+
+# ---------------- XP y niveles ----------------
+
+# Solo visual: en cada nivel el personaje se ve un poco más grande (nivel 10 = 30 % más)
+func escala_nivel():
+	return 1.0 + (nivel - 1) * 0.033
+
+# La llama celular_suelo.gd al recoger un celular o unos audífonos.
+# Lleva la racha: cada objeto seguido suena más agudo y cada 5 sale «¡RACHA xN!».
+func recoger_objeto(puntos, pos):
+	racha = racha + 1 if t_racha > 0.0 else 1
+	t_racha = RACHA_SEG
+	var tono = min(1.0 + 0.07 * (racha - 1), 2.0)
+	var extra = ("  x%d" % racha) if racha >= 3 else ""
+	if nivel >= XP_NIVELES.size():
+		# nivel máximo: ya no hay XP, cura un poquito
+		vida = min(vida + 2.0, 100.0)
+		Fx.sonar("curar", tono)
+		Fx.chispas(pos, Color(0.4, 1.0, 0.5), 10, 160.0, 0.4, 4.0)
+		Fx.texto_flotante(pos + Vector2(0, -26), "+2 vida" + extra, Color(0.45, 1.0, 0.55), 18)
+	else:
+		Fx.sonar("recoger", tono)
+		Fx.chispas(pos, Color(0.45, 0.95, 1.0), 10, 160.0, 0.4, 4.0)
+		Fx.texto_flotante(pos + Vector2(0, -26), "+%d XP%s" % [puntos, extra], Color(0.45, 0.95, 1.0), 18 + min(racha, 10))
+		ganar_xp(puntos)
+	if racha % 5 == 0:
+		Fx.sonar("combo", 1.0 + 0.05 * (racha / 5))
+		Fx.texto_flotante(global_position + Vector2(0, -95), "¡RACHA x%d!" % racha, Color(1.0, 0.85, 0.2), 28)
+		Fx.onda(global_position, 80.0, Color(1.0, 0.85, 0.3), 0.35)
+
+# Al crecer, el sprite sube para que los pies sigan en el mismo sitio (así no "pisa" las cajas
+# ni los sofás: lo que choca es el círculo de los pies, que no cambia)
+func pies_nivel():
+	return -36.0 * (escala_nivel() - 1.0)
+
+func nivel_de(puntos):
+	var n = 1
+	for i in range(XP_NIVELES.size()):
+		if puntos >= XP_NIVELES[i]:
+			n = i + 1
+	return n
+
+# XP que falta / total del nivel actual (para la barra del HUD). En el nivel máximo queda llena.
+func progreso_xp():
+	if nivel >= XP_NIVELES.size():
+		return 1.0
+	var a = XP_NIVELES[nivel - 1]
+	var b = XP_NIVELES[nivel]
+	return float(xp - a) / float(b - a)
+
+# Suma XP; si sube de nivel cambia la skin con un efecto grande
+func ganar_xp(n):
+	xp += n
+	var nuevo = nivel_de(xp)
+	if nuevo > nivel:
+		nivel = nuevo
+		if spr != null:
+			spr.texture = HOJAS_NIVEL[nivel - 1]
+			spr.position.y = pies_nivel()
+			spr.scale = Vector2.ONE * escala_nivel() * 1.4
+			create_tween().tween_property(spr, "scale", Vector2.ONE * escala_nivel(), 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		Fx.onda(global_position, 120.0, Color(0.4, 0.95, 1.0), 0.5)
+		Fx.chispas(global_position, Color(1.0, 0.85, 0.3), 30, 260.0, 0.7, 6.0)
+		Fx.destello(Color(0.6, 0.95, 1.0), 0.25, 0.3)
+		Fx.temblor(5.0, 0.2)
+		Fx.texto_flotante(global_position + Vector2(0, -80), "¡NIVEL %d! %s" % [nivel, NOMBRES_NIVEL[nivel - 1]], Color(0.5, 1.0, 1.0), 26)
+		Fx.sonar("nivel")
+		var hud = get_parent().get_node_or_null("HUD")
+		if hud != null and hud.has_method("anunciar_nivel"):
+			hud.anunciar_nivel(nivel, NOMBRES_NIVEL[nivel - 1])
+
 # Empuja al jugador "desplaz" píxeles en total (si no choca con nada)
 func empujar(desplaz):
 	empuje = desplaz * 2.0 / EMPUJE_TIEMPO
@@ -133,27 +318,43 @@ func perder(razon):
 	if Muerte.activa:
 		return   # vida y dopamina pueden llegar a 0 en el mismo cuadro: se avisa una sola vez
 	print(razon)
+	Registro.xp_inicio = 0   # al perder, la XP y la skin vuelven al nivel 1
 	reg.guardar(libres)
 	Muerte.mostrar(razon, libres)
 
 # Cachetada: libera zombis, revienta burbujas/clones y le avisa a los jefes dónde pegó
 func dar_cachetada():
 	var centro = global_position + cara * desplaz   # el golpe se corre hacia donde mira
+	pose_golpe = POSE_DURA  # el sprite hace la pose de cachetada
+	Fx.sonar("whoosh", randf_range(0.9, 1.15), -4.0)
 	golpe_t = GOLPE_DURA   # arranca la animación de la mano (se dibuja en _draw())
 	queue_redraw()
 	var pego = false   # true si la cachetada le dio a algo (para el sonido de «hice daño»)
+	var tanda = 0      # cuántos zombis liberó este mismo golpe (para el combo)
 	for z in get_tree().get_nodes_in_group("zombis"):
 		if centro.distance_to(z.global_position) < radio_golpe:
-			ultimo_liberado = z.scene_file_path
-			z.liberar()
-			libres += 1
+			var dir_g = (z.global_position - centro).normalized()   # el celular sale hacia donde pegó
 			pego = true
+			var pos_z = z.global_position
+			if z.golpear(dir_g):   # false = aguantó (zombi con audífonos: pide 2 cachetadas)
+				ultimo_liberado = z.scene_file_path
+				libres += 1
+				tanda += 1
+				Fx.texto_flotante(pos_z + Vector2(0, -34), "+1", Color(0.7, 1.0, 0.5))
+				Fx.sonar("liberar", 1.0 + 0.1 * (tanda - 1))
 	# burbujas y clones del jefe: se revientan sin sumar a libres
 	for d in get_tree().get_nodes_in_group("destruibles"):
 		if centro.distance_to(d.global_position) < radio_golpe:
 			d.reventar()
 			pego = true
+			Fx.chispas(d.global_position, Color(1, 0.85, 0.4), 10, 200.0, 0.4, 5.0)
+	if tanda >= 3:
+		Fx.texto_flotante(centro + Vector2(0, -70), "¡COMBO x%d!" % tanda, Color(1.0, 0.75, 0.2), 34)
+		Fx.temblor(5.0 + tanda, 0.2)
+		Fx.sonar("combo", 1.0 + 0.04 * tanda)
 	if pego:
+		Fx.temblor(3.5, 0.12)
+		Fx.texto_flotante(centro + Vector2(cara.x * 20.0, -62), "¡PAF!", Color(1.0, 0.92, 0.35), 26)
 		MusicaGlobal.sonar_golpe()   # sonido de «hice daño» (el del jefe lo pone musica_global.gd)
 	# los corazones del jefe ya no se pueden bloquear con la cachetada
 	# el jefe decide solo si el golpe lo alcanza (cuerpo o antena)
@@ -169,6 +370,9 @@ func _draw():
 	draw_set_transform(Vector2(0, 31), 0.0, Vector2(1.0, 0.32))
 	draw_circle(Vector2.ZERO, 22.0, Color(0, 0, 0, 0.3))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if USAR_SPRITES:
+		dibujar_cachetada()   # el cuerpo es el Sprite2D; aquí solo se dibuja la mano
+		return
 	# cuerpo azul con contorno blanco
 	var cuerpo = StyleBoxFlat.new()
 	cuerpo.bg_color = Color(0.23, 0.51, 0.96)
@@ -209,6 +413,8 @@ func dibujar_cachetada():
 	if puntos.size() >= 2:
 		draw_polyline(puntos, Color(1, 1, 1, 0.55), 14.0)
 		draw_polyline(puntos, Color(1, 1, 1, 0.9), 4.0)
+	if USAR_SPRITES:
+		return   # el brazo y la mano ya los muestra el sprite (cuadros 10-13)
 	# 4) el brazo y la mano abierta
 	var mano = punto_cachetada(avance, centro, lado)
 	draw_line(Vector2(0, 2), mano, Color(0.23, 0.51, 0.96), 9.0)   # manga azul, igual que el cuerpo
