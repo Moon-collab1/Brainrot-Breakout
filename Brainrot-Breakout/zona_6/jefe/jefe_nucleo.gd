@@ -12,6 +12,8 @@ extends "res://comun/jefe/jefe_base.gd"
 # Cómo se le pega: cada 2 ataques el escudo se abre (aturdido 5 s, «NÚCLEO EXPUESTO»).
 
 # --- Balance (todo se ajusta aquí) ---
+const HOJA = preload("res://comun/jefe/hoja_jefe.gd")
+const SPRITE = preload("res://assets/sprites/jefes/jefe_nucleo.png")
 const VIDA = 25
 const FASE2_VIDA = 10            # 40 % de 25
 const RADIO = 75.0
@@ -25,10 +27,10 @@ const MULT_SOBRECARGA = 1.5      # en fase 2 todo va ×1.5 más rápido
 const LASER_AVISO = 1.0
 const LASER_ROJOS = 2            # láseres rojos (cada uno sale por un lado distinto)
 const LASER_ROJOS_F2 = 3         # en fase 2 salen por los 3 lados que no usa el verde
-const LASER_VEL_ROJO = 140.0     # px/s de los rojos
+const LASER_VEL_ROJO = 165.0     # px/s de los rojos
 const LASER_VEL_VERDE = 260.0    # el verde es más rápido: llega antes que los rojos
 const LASER_QUIETO_VERDE = 0.6   # segundos que el verde espera en su borde
-const LASER_QUIETO_ROJO = 3.2     # los rojos esperan MÁS: da tiempo de rodear los racks y correr hasta el verde
+const LASER_QUIETO_ROJO = LASER_QUIETO_VERDE   # los rojos arrancan AL MISMO TIEMPO que el verde (antes esperaban 3,2 s y era muy fácil)
 const LASER_DANO = 15.0
 # Los 4 lados por donde puede entrar un láser: [es vertical, posición inicial, dirección]
 const LADOS = {
@@ -135,7 +137,7 @@ func crear_laser(lado, es_verde):
 		l.aviso = LASER_QUIETO_VERDE
 	else:
 		l.vel = LASER_VEL_ROJO * mult()
-		l.aviso = LASER_QUIETO_ROJO   # no se acorta en fase 2: siempre hay tiempo de llegar al verde
+		l.aviso = LASER_QUIETO_ROJO   # sale a la vez que el verde
 	get_parent().add_child(l)
 	get_parent().move_child(l, 1)   # en el piso, justo encima del Mapa
 	return l
@@ -183,37 +185,15 @@ func crear_dato(pos, velocidad):
 	get_parent().add_child(d)
 
 # ---------------- Dibujo placeholder ----------------
-# Chip con anillo magenta. Reemplazar por el PNG real del Núcleo.
+# Chip con anillo magenta (sprite assets/sprites/jefes/jefe_nucleo.png).
 
 func _draw():
 	var expuesto = estado == Estado.ATURDIDO
 	var t = Time.get_ticks_msec() / 1000.0
 	# aura
 	draw_circle(Vector2.ZERO, 105.0, Color(1, 0.2, 0.7, 0.08 + 0.04 * sin(t * 3.0)))
-	# patitas del chip
-	for i in range(5):
-		var o = -60.0 + i * 30.0
-		draw_line(Vector2(o, -82), Vector2(o, -96), Color(0.3, 0.35, 0.8), 4.0)
-		draw_line(Vector2(o, 82), Vector2(o, 96), Color(0.3, 0.35, 0.8), 4.0)
-		draw_line(Vector2(-82, o), Vector2(-96, o), Color(0.3, 0.35, 0.8), 4.0)
-		draw_line(Vector2(82, o), Vector2(96, o), Color(0.3, 0.35, 0.8), 4.0)
-	# cuerpo
-	draw_rect(Rect2(-75, -75, 150, 150), Color(0.08, 0.1, 0.28))
-	draw_rect(Rect2(-75, -75, 150, 150), Color(0.35, 0.4, 1.0), false, 5.0)
-	draw_rect(Rect2(-60, -60, 120, 120), Color(0.03, 0.04, 0.12))
-	# núcleo: anillo magenta con centro blanco (se abre cuando está expuesto)
-	var anillo = Color(1, 0.2, 0.75)
-	var centro = Color(1, 1, 1)
-	if expuesto:
-		anillo = Color(1, 0.9, 0.3)
-		centro = Color(1, 0.9, 0.3)
-		draw_circle(Vector2.ZERO, 44.0, Color(1, 0.9, 0.3, 0.25))
-	draw_arc(Vector2.ZERO, 38.0, 0.0, TAU, 40, anillo, 8.0)
-	draw_circle(Vector2.ZERO, 18.0, centro)
-	draw_line(Vector2(-60, 0), Vector2(-40, 0), anillo, 3.0)
-	draw_line(Vector2(40, 0), Vector2(60, 0), anillo, 3.0)
-	draw_line(Vector2(0, -60), Vector2(0, -40), anillo, 3.0)
-	draw_line(Vector2(0, 40), Vector2(0, 60), anillo, 3.0)
+	# chip: sprite animado (pistas que laten, anillo girando). Fila 1 = núcleo expuesto (amarillo)
+	HOJA.dibujar(self, SPRITE, 4, 1 if expuesto else 0, Vector2(230, 230), Vector2(115, 115), Color(1, 1, 1), 0.14)
 	draw_string(ThemeDB.fallback_font, Vector2(-45, 70), "∞ CORE", HORIZONTAL_ALIGNMENT_CENTER, 90, 14, Color(0.7, 0.75, 1.0))
 	if expuesto:
 		draw_string(ThemeDB.fallback_font, Vector2(-80, -110), "¡NÚCLEO EXPUESTO!", HORIZONTAL_ALIGNMENT_CENTER, 160, 16, Color(1, 1, 0.4))
