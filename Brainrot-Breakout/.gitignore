@@ -1,1 +1,20 @@
+# Godot 4
 .godot/
+.nomedia
+*.translation
+
+# Exportaciones (se publican en itch.io, no en el repositorio)
+web/
+web.zip
+*.zip
+/android/
+export_credentials.cfg
+
+# Editores y sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*~
+*.tmp
+*.bak
