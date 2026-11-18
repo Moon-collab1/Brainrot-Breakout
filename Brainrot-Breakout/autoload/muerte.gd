@@ -147,6 +147,7 @@ func reintentar():
 # MENÚ: se pierde el progreso de la partida (igual que "Salir al menú" de la pausa)
 func ir_al_menu():
 	Registro.libres_inicio = 0
+	Registro.xp_inicio = 0
 	salir(func(): get_tree().change_scene_to_file(Registro.MENU))
 
 # Fundido a negro -> hace el cambio de escena -> la pantalla de muerte se esconde

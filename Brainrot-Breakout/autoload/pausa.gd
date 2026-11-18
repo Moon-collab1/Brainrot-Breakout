@@ -152,6 +152,7 @@ func al_menu():
 		j.reg.guardar(j.libres)
 	cerrar()
 	Registro.libres_inicio = 0
+	Registro.xp_inicio = 0
 	get_tree().change_scene_to_file(Registro.MENU)
 
 # ---------- estilo (el mismo del menú principal) ----------
