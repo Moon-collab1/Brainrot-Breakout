@@ -46,6 +46,19 @@ func _process(delta):
 			queue_free()   # ya se vieron los pedazos: se borra
 	queue_redraw()
 
+# El Capataz la rompe cuando se le atraviesa mientras escapa
+func romper():
+	if rota or not cayo:
+		return
+	rota = true
+	t_rota = 0.0
+	remove_from_group("rebotables")
+	collision_layer = 0
+	Fx.chispas(global_position, Color(0.75, 0.52, 0.3), 14, 220.0, 0.45, 5.0)
+	Fx.texto_flotante(global_position + Vector2(0, -40), "¡CRASH!", Color(1, 0.8, 0.4), 20)
+	Fx.sonar("crash")
+	Fx.temblor(4.0, 0.12)
+
 # ¿Hay algo redondo (de ese radio) debajo de la caja?
 func esta_debajo(pos, radio):
 	var d = pos - global_position
@@ -53,6 +66,8 @@ func esta_debajo(pos, radio):
 
 func caer():
 	cayo = true
+	Fx.sonar("crash", 0.7, -8.0)   # golpe seco al caer
+	Fx.polvo(global_position + Vector2(0, 30))
 	var golpeo = false
 	# 1) ¿le cayó al jugador? Daño y la caja se rompe
 	var jug = get_parent().get_node("Jugador")
@@ -75,25 +90,33 @@ func caer():
 	add_to_group("rebotables")
 	collision_layer = 4   # capa 3 «obstaculos» (su valor en bits es 4)
 
-# Placeholder dibujado: reemplazar por el sprite real de la caja
+const SPRITE = preload("res://zona_3/assets/caja.png")
+const CAIDA = 0.3   # los últimos 0,3 s del aviso se ve la caja cayendo desde arriba
+
 func _draw():
-	var color = Color(0.62, 0.42, 0.22)
 	if not cayo:
 		# aviso: círculo rojo que late
 		var pulso = 0.25 + 0.15 * sin(t * 12.0)
 		draw_circle(Vector2.ZERO, RADIO_AVISO, Color(0.9, 0.15, 0.15, pulso))
 		draw_arc(Vector2.ZERO, RADIO_AVISO, 0.0, TAU, 32, Color(1, 0.3, 0.3, 0.8), 3.0)
 		draw_string(ThemeDB.fallback_font, Vector2(-8, 10), "!", HORIZONTAL_ALIGNMENT_CENTER, 16, 30, Color(1, 0.4, 0.4))
+		var falta = aviso - t
+		if falta < CAIDA:
+			# la caja viene cayendo: la sombra crece y la caja baja
+			var u = 1.0 - falta / CAIDA
+			draw_circle(Vector2(0, 6), 38.0 * u, Color(0, 0, 0, 0.35 * u))
+			draw_texture(SPRITE, Vector2(-48, -48 - 260.0 * (1.0 - u) * (1.0 - u)))
 	elif rota:
-		# caja rota: cuatro pedazos que se separan y se van borrando
+		# caja rota: cuatro pedazos de cartón que se separan y se van borrando
 		var avance = t_rota / TIEMPO_ROTA
 		var alfa = 1.0 - avance
 		for esquina in [Vector2(-1, -1), Vector2(1, -1), Vector2(-1, 1), Vector2(1, 1)]:
 			var centro = esquina * (20.0 + 30.0 * avance)
-			draw_rect(Rect2(centro - Vector2(16, 16), Vector2(32, 32)), Color(color.r, color.g, color.b, alfa))
+			draw_set_transform(centro, esquina.x * avance * 1.2, Vector2.ONE)
+			draw_rect(Rect2(Vector2(-16, -16), Vector2(32, 32)), Color(0.72, 0.5, 0.28, alfa))
+			draw_rect(Rect2(Vector2(-16, -16), Vector2(32, 32)), Color(0.1, 0.07, 0.1, alfa), false, 2.0)
+			draw_rect(Rect2(Vector2(-4, -16), Vector2(8, 32)), Color(0.88, 0.78, 0.59, alfa))
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	else:
-		# caja entera en el piso
-		draw_rect(Rect2(-40, -40, 80, 80), color)
-		draw_rect(Rect2(-40, -40, 80, 80), color.darkened(0.35), false, 3.0)
-		draw_line(Vector2(-40, 0), Vector2(40, 0), color.darkened(0.35), 3.0)
-		draw_line(Vector2(0, -40), Vector2(0, 40), color.darkened(0.35), 3.0)
+		# caja entera en el piso (mismo dibujo que las cajas del mapa)
+		draw_texture(SPRITE, Vector2(-48, -48))
