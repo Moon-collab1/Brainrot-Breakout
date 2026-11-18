@@ -27,6 +27,7 @@ const INTENTOS_SPAWN = 10
 @export var spawn_y_fondo = 618.0
 @export var escena_siguiente = ""          # vacío = siguen las oleadas
 
+const XP_ZONA = 50   # XP de premio al pasar de zona
 var zombi_esc = preload("res://comun/zombi/zombi.tscn")
 var oleadas = Lista.new()
 var n_ola = 0
@@ -37,6 +38,7 @@ var en_transicion = false # esperando para cambiar de zona
 
 func _ready():
 	MusicaGlobal.reproducir_juego()
+	Fx.ambiente(self, numero_zona)   # partículas flotando según la zona
 	n_ola = ola_inicial
 	for t in tamanos_iniciales:
 		oleadas.agregar_final(t)
@@ -147,6 +149,8 @@ func _al_morir_jefe():
 func pasar_de_zona():
 	en_transicion = true
 	Registro.libres_inicio = $Jugador.libres
+	$Jugador.ganar_xp(XP_ZONA)   # premio por pasar de zona
+	Registro.xp_inicio = $Jugador.xp
 	var destino = Registro.MENU if Registro.modo_arcade else escena_siguiente
 	if destino != "":
 		Transicion.cambiar_escena(destino)   # autoload: ver autoload/transicion.gd

@@ -10,6 +10,9 @@ class_name Registro
 # Libres con los que se entra a la zona actual (los guarda la raíz de la zona al avanzar)
 static var libres_inicio = 0
 
+# XP con la que se entra a la zona actual (se gana recogiendo celulares/audífonos y pasando de zona)
+static var xp_inicio = 0
+
 # true cuando se entró por ARCADE: al terminar la zona se vuelve al menú principal
 static var modo_arcade = false
 
