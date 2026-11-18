@@ -87,6 +87,8 @@ const COLOR_NORMAL = Color(0.42, 0.36, 0.88)
 const COLOR_ATURDIDO = Color(0.5, 0.6, 1.0)
 const COLOR_OJO = Color(1, 0.25, 0.4)
 const COLOR_SALMON = Color(1, 0.55, 0.5)
+const HOJA = preload("res://comun/jefe/hoja_jefe.gd")
+const SPRITE = preload("res://assets/sprites/jefes/jefe_algoritmo.png")
 const RADIO_DIBUJO = 108.0       # el orbe visual es un poco más grande que el cuerpo
 
 enum Estado { INTRO, ATACANDO, CAMBIANDO, ATURDIDO }
@@ -140,7 +142,6 @@ var burbuja_esc = preload("res://zona_2/jefe/ataques/burbuja.tscn")
 var cinta_esc = preload("res://zona_2/jefe/ataques/cinta.tscn")
 var sombra_esc = preload("res://zona_2/jefe/ataques/shadowban.tscn")
 var clon_esc = preload("res://zona_2/jefe/ataques/clon.tscn")
-var icono = preload("res://icon.svg")
 
 @onready var jug = get_parent().get_node("Jugador")
 @onready var etiqueta_nombre = $NombreAtaque
@@ -168,6 +169,8 @@ func _ready():
 	tw_intro.tween_property(self, "modulate:a", 1.0, 1.0)
 	$TimerEstado.timeout.connect(_al_terminar_estado)
 	cambiar_estado(Estado.INTRO)
+	Fx.sonar("jefe_aparece")
+	Fx.temblor(6.0, 0.4)
 
 func _process(delta):
 	if muerto:
@@ -188,17 +191,8 @@ func _draw():
 	if aturdido:
 		tono = COLOR_ATURDIDO
 	var t = Time.get_ticks_msec() / 1000.0
-	# 3 tentáculos curvos debajo (llegan a y = +150)
-	for i in range(3):
-		var x0 = -55.0 + 55.0 * i
-		var pts = PackedVector2Array()
-		for k in range(11):
-			var f = k / 10.0
-			pts.append(Vector2(x0 + sin(t * 2.5 + i * 2.0 + f * 4.0) * 14.0 * f, 60.0 + f * 90.0))
-		draw_polyline(pts, tono.darkened(0.2), 12.0, true)
-	# orbe con aro claro
-	draw_circle(Vector2.ZERO, RADIO_DIBUJO, tono)
-	draw_arc(Vector2.ZERO, RADIO_DIBUJO, 0.0, TAU, 64, tono.lightened(0.45), 5.0)
+	# orbe, tentáculos y notificaciones: sprite animado (fila 1 = aturdido, más azul)
+	HOJA.dibujar(self, SPRITE, 6, 1 if aturdido else 0, Vector2(300, 330), Vector2(150, 128), Color(1, 1, 1), 0.12)
 	var ojo = Vector2(0, -6)
 	if aturdido:
 		# ojo cerrado (párpado) y pupila de «cargando»
@@ -224,8 +218,9 @@ func _draw():
 		if reco_t > RECO_APUNTA:
 			alfa_linea = 0.85   # ya bloqueó el ángulo
 		draw_line(salida, salida + dir * RECO_LINEA, Color(1, 0.15, 0.2, alfa_linea), 4.0)
-		var lado = 128.0 * RECO_ESCALA   # icon.svg mide 128 px
-		draw_texture_rect(icono, Rect2(salida - Vector2(lado, lado) / 2.0, Vector2(lado, lado)), false, Color(1, 0.5, 0.5, 0.5))
+		# la perla que va a salir disparada, transparente
+		draw_circle(salida, 22.0, Color(1, 0.35, 0.8, 0.35))
+		draw_circle(salida + Vector2(-5, -6), 7.0, Color(1, 0.8, 0.95, 0.5))
 
 # ---------------- Estados ----------------
 
@@ -255,6 +250,7 @@ func aturdir():
 	modulate.a = 1.0
 	mostrar_insignias(true)
 	limpiar_ataques()
+	Fx.sonar("aturdido")
 	if insignias.is_empty():
 		nueva_tanda()   # las nuevas ya existen, pero no cuentan hasta que termine
 	cambiar_estado(Estado.ATURDIDO)
@@ -342,6 +338,7 @@ func ejecutar_ataque(nombre, mi_id):
 # Aviso de cada ataque: muestra el nombre bajo el jefe mientras dura
 func avisar(mi_id, seg, nombre):
 	mostrar_nombre(NOMBRES[nombre])
+	Fx.sonar("aviso", randf_range(0.95, 1.05), -2.0)
 	en_aviso = true
 	await esperar(seg)
 	if mi_id == id_ataque:   # si se canceló, aturdir/iniciar_ataques ya lo apagaron
@@ -469,7 +466,8 @@ func disparar_clon():
 	c.dano = RECO_DANO
 	c.empuje = RECO_EMPUJE
 	get_parent().add_child(c)
-	print("Recomendado: clon lanzado")
+	Fx.sonar("perla")
+	print("Recomendado: perla lanzada")
 
 # ---------------- Suscriptores ----------------
 # Banner 1,2 s y luego llegan los zombis de a uno. Si se cancela (aturdir) los que ya salieron se quedan.
@@ -614,12 +612,15 @@ func recibir_golpe(pos):
 			mejor = ins
 	if mejor != null:
 		MusicaGlobal.sonar_golpe()   # sonido de «hice daño»: el golpe le entró a una bolita
+		Fx.chispas(mejor.global_position, Color(1.0, 0.5, 0.9), 10, 200.0, 0.4, 5.0)
+		Fx.temblor(3.0, 0.1)
 		mejor.poner_vida(mejor.vida - 1)
 		if mejor.vida <= 0:
 			reventar_insignia(mejor)
 	# si solo alcanza el cuerpo estando bloqueado: no pasa nada
 
 func quitar_vida(n):
+	Fx.impacto_jefe(global_position, n)   # chispas, temblor y número de daño
 	vida = max(vida - n, 0)
 	vida_cambiada.emit(vida, VIDA_MAX)
 	if vida <= 0:
@@ -630,9 +631,13 @@ func quitar_vida(n):
 func entrar_fase_2():
 	fase = 2
 	vel_orbita = deg_to_rad(VEL_ORBITA) * MULT_ORBITA_F2
+	Fx.sonar("fase2")
+	Fx.temblor(8.0, 0.5)
+	Fx.destello(Color(1, 0.2, 0.2), 0.25, 0.4)
 	print("Jefe: FASE 2")
 
 func morir():
+	Fx.explosion(global_position)   # explosión grande antes de desaparecer
 	muerto = true
 	print("Pelea terminada en ", snappedf(t_pelea, 0.1), " s")
 	murio.emit()

@@ -10,6 +10,8 @@ extends "res://comun/jefe/jefe_base.gd"
 # Cómo se le pega: después de cada Jeringazo queda «agotado» 3 s y ahí se le puede pegar.
 
 # --- Balance (todo se ajusta aquí) ---
+const HOJA = preload("res://comun/jefe/hoja_jefe.gd")
+const SPRITE = preload("res://assets/sprites/jefes/jefe_dopamina.png")
 const VIDA = 24
 const FASE2_VIDA = 12
 const RADIO = 60.0
@@ -218,27 +220,7 @@ func _draw():
 		if jer_t > JERINGA_APUNTA:
 			alfa = 0.45
 		draw_colored_polygon(PackedVector2Array([lado, lado + fin, -lado + fin, -lado]), Color(1, 0.2, 0.3, alfa))
-	# bata blanca
-	var bata = Color(0.95, 0.97, 0.98)
+	# doctora-cerebro en su pecera con suero: sprite animado (fila 1 = agotado)
+	HOJA.dibujar(self, SPRITE, 4, 1 if aturdido else 0, Vector2(200, 195), Vector2(95, 104), Color(1, 1, 1), 0.16)
 	if aturdido:
-		bata = Color(0.7, 0.8, 0.9)
-	draw_colored_polygon(PackedVector2Array([Vector2(-65, 75), Vector2(-42, -10), Vector2(42, -10), Vector2(65, 75)]), bata)
-	draw_line(Vector2(0, -10), Vector2(0, 75), Color(0.6, 0.7, 0.75), 2.0)
-	# pecera con el cerebro
-	draw_circle(Vector2(0, -52), 46.0, Color(0.6, 0.9, 0.95, 0.5))
-	draw_arc(Vector2(0, -52), 46.0, 0.0, TAU, 40, Color(0.7, 0.95, 1, 1), 4.0)
-	draw_circle(Vector2(0, -50), 30.0, Color(0.95, 0.5, 0.65))
-	draw_line(Vector2(0, -78), Vector2(0, -24), Color(0.7, 0.2, 0.35), 2.0)
-	var ojo = Color(1, 1, 1)
-	draw_circle(Vector2(-10, -52), 6.0, ojo)
-	draw_circle(Vector2(10, -52), 6.0, ojo)
-	if aturdido:
-		draw_line(Vector2(-16, -52), Vector2(-4, -52), Color(0.1, 0.05, 0.1), 3.0)
-		draw_line(Vector2(4, -52), Vector2(16, -52), Color(0.1, 0.05, 0.1), 3.0)
 		draw_string(ThemeDB.fallback_font, Vector2(-50, -112), "¡AGOTADO!", HORIZONTAL_ALIGNMENT_CENTER, 100, 16, Color(1, 1, 0.4))
-	else:
-		draw_circle(Vector2(-10, -52), 2.5, Color(0.1, 0.05, 0.1))
-		draw_circle(Vector2(10, -52), 2.5, Color(0.1, 0.05, 0.1))
-	# suero (poste con bolsa verde)
-	draw_line(Vector2(75, -20), Vector2(75, 75), Color(0.7, 0.75, 0.8), 4.0)
-	draw_rect(Rect2(66, -40, 18, 28), Color(0.3, 0.9, 0.5))

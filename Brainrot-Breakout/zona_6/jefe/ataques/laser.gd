@@ -6,8 +6,8 @@ extends Node2D
 #   ROJO  (verde = false): hace daño al tocarlo. Es el peligroso.
 #   VERDE (verde = true):  NO hace daño. Si el jugador lo toca, TODOS los rojos se vuelven
 #                          verdes y dejan de hacer daño. Es la forma de esquivar la rejilla.
-# El jefe siempre pone el verde en un lado de la pantalla distinto al de los rojos, y los
-# rojos esperan más tiempo antes de moverse, para que alcances a tocar primero el verde.
+# El jefe siempre pone el verde en un lado de la pantalla distinto al de los rojos. Todos
+# arrancan al mismo tiempo; el verde es más rápido, pero hay que correr para tocarlo primero.
 #
 # Cada láser tiene dos momentos:
 #   1. AVISO: línea punteada y quieta en el borde. No hace daño (el verde sí se puede tocar ya).
@@ -34,6 +34,7 @@ var t = 0.0
 var t_golpe = 0.0
 var neutral = false    # true = ya no hace daño (un rojo neutralizado, o el verde ya usado)
 var t_apagado = 0.0    # tiempo que lleva desvaneciéndose
+var sono = false       # ya sonó el «zap» al activarse
 var lado_antes = 0.0   # de qué lado de la línea estaba el jugador en el frame anterior (signo)
 
 func activo():
@@ -49,6 +50,9 @@ func neutralizar():
 	neutral = true
 
 func _process(delta):
+	if not sono and t >= aviso and not neutral:
+		sono = true
+		Fx.sonar("zap", randf_range(0.9, 1.1) if not verde else 1.4, -3.0)
 	t += delta
 	t_golpe -= delta
 	# un láser neutralizado solo se desvanece y se borra
