@@ -1,7 +1,7 @@
 extends Node2D
 
-# Mapa de la Zona 5 «Laboratorio Secreto». Todo se dibuja con _draw() (placeholder):
-# reemplaza cada bloque "REEMPLAZAR" por un Sprite2D en zona_5/assets/.
+# Mapa de la Zona 5 «Laboratorio Secreto». Fondo: zona_5/assets/laboratorio.png (generado con
+# las mesas en las posiciones de abajo); cerebros y burbujas de los tanques se animan aquí.
 # Las colisiones NO se dibujan aquí: están en MapaZona5.tscn.
 const PISO_Y = 124.0
 const BALDOSA = 64.0
@@ -15,38 +15,27 @@ const COLOR_MESA = Color(0.45, 0.55, 0.6)
 const MESAS = [Vector2(240, 250), Vector2(240, 470), Vector2(600, 560), Vector2(900, 530)]
 const TUBOS = [Vector2(70, 60), Vector2(260, 60), Vector2(450, 60), Vector2(640, 60), Vector2(830, 60), Vector2(1020, 60)]
 
+const FONDO = preload("res://zona_5/assets/laboratorio.png")   # pared, tanques, piso y mesas ya dibujados
+
+func _process(_delta):
+	queue_redraw()   # cerebros flotando y burbujas en los tanques
+
 func _draw():
-	# REEMPLAZAR: pared del fondo con tubos de cultivo (cerebros en frascos)
-	draw_rect(Rect2(0, 0, 1152, PISO_Y), COLOR_PARED)
-	for c in TUBOS:
-		draw_rect(Rect2(c - Vector2(35, 50), Vector2(70, 100)), Color(0.35, 0.6, 0.7, 0.55))
-		draw_rect(Rect2(c - Vector2(35, 50), Vector2(70, 100)), Color(0.6, 0.85, 0.9), false, 2.0)
-		draw_circle(c + Vector2(0, 5), 18.0, Color(0.95, 0.5, 0.65))
-		draw_circle(c + Vector2(-6, 0), 3.0, Color(0.2, 0.1, 0.15))
-		draw_circle(c + Vector2(6, 0), 3.0, Color(0.2, 0.1, 0.15))
-	# franja verde neón entre la pared y el piso
-	draw_rect(Rect2(0, PISO_Y - 12, 1152, 12), COLOR_NEON)
-
-	# REEMPLAZAR: piso de baldosas en tablero de ajedrez
-	var y = PISO_Y
-	var fila = 0
-	while y < 648.0:
-		var x = 0.0
-		var col = 0
-		while x < 1152.0:
-			var color = COLOR_BALDOSA_A
-			if (fila + col) % 2 == 1:
-				color = COLOR_BALDOSA_B
-			draw_rect(Rect2(x, y, BALDOSA, BALDOSA), color)
-			x += BALDOSA
-			col += 1
-		y += BALDOSA
-		fila += 1
-
-	# REEMPLAZAR: mesas de laboratorio 170x70 (colisión 162x62)
-	for c in MESAS:
-		draw_rect(Rect2(c - Vector2(85, 35), Vector2(170, 70)), COLOR_MESA)
-		draw_rect(Rect2(c - Vector2(85, 35), Vector2(170, 70)), Color(0.25, 0.3, 0.33), false, 3.0)
-		draw_rect(Rect2(c + Vector2(-70, -18), Vector2(14, 34)), Color(0.2, 0.85, 0.5))
-		draw_rect(Rect2(c + Vector2(-46, -18), Vector2(14, 34)), Color(1, 0.3, 0.45))
-		draw_circle(c + Vector2(40, 0), 17.0, Color(0.4, 0.8, 1.0))
+	draw_texture(FONDO, Vector2.ZERO)
+	var t = Time.get_ticks_msec() / 1000.0
+	for i in range(TUBOS.size()):
+		var c = TUBOS[i]
+		# cerebro flotando dentro del tanque
+		var p = c + Vector2(sin(t * 1.3 + i) * 4.0, sin(t * 2.0 + i * 1.7) * 6.0)
+		draw_circle(p, 17.0, Color(0.95, 0.5, 0.65))
+		draw_arc(p, 17.0, 0.0, TAU, 24, Color(0.7, 0.25, 0.4), 2.0)
+		draw_line(p + Vector2(0, -16), p + Vector2(0, 16), Color(0.7, 0.25, 0.4), 1.5)
+		draw_arc(p + Vector2(-7, -3), 6.0, PI, TAU, 8, Color(0.7, 0.25, 0.4), 1.5)
+		draw_arc(p + Vector2(7, 4), 6.0, 0.0, PI, 8, Color(0.7, 0.25, 0.4), 1.5)
+		draw_circle(p + Vector2(-6, -1), 2.5, Color(0.2, 0.1, 0.15))
+		draw_circle(p + Vector2(6, -1), 2.5, Color(0.2, 0.1, 0.15))
+		# burbujas que suben
+		for k in range(4):
+			var u = fmod(t * 0.6 + k * 0.25 + i * 0.13, 1.0)
+			var b = c + Vector2(-20 + k * 13 + sin(t * 3.0 + k) * 3.0, 38 - u * 76)
+			draw_arc(b, 2.5 + (k % 2), 0.0, TAU, 10, Color(0.85, 1, 0.95, 0.8 * (1.0 - u)), 1.2)
