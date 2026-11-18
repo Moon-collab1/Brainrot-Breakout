@@ -140,6 +140,8 @@ func _ready():
 	tw.tween_property(self, "modulate:a", 1.0, 1.0)
 	$TimerEstado.timeout.connect(_al_terminar_estado)
 	cambiar_estado(Estado.INTRO)
+	Fx.sonar("jefe_aparece")
+	Fx.temblor(6.0, 0.4)
 
 func _process(delta):
 	if muerto:
@@ -224,6 +226,7 @@ func aturdir():
 	modulate.a = 1.0
 	mostrar_antena(true)
 	limpiar_ataques()
+	Fx.sonar("aturdido")
 	cambiar_estado(Estado.ATURDIDO)
 
 func limpiar_ataques():
@@ -321,6 +324,7 @@ func ejecutar_ataque(nombre, mi_id):
 
 # Los ataques usan esto para su aviso: mientras dura, el pulso no se activa
 func avisar(mi_id, seg):
+	Fx.sonar("aviso", randf_range(0.95, 1.05), -2.0)
 	en_aviso = true
 	await esperar(seg)
 	if mi_id == id_ataque:   # si se canceló, aturdir/iniciar_ataques ya lo pusieron en false
@@ -337,6 +341,7 @@ func ataque_flash(mi_id):
 	if mi_id != id_ataque or muerto:
 		return   # se canceló: aturdir() ya apagó el cono
 	cono_activo = false
+	Fx.sonar("camara")
 	if jugador_en_cono(jug):
 		print("Flash: te alcanzó")
 		get_parent().get_node("HUD").flash_blanco(FLASH_BLANCO)
@@ -659,6 +664,7 @@ func romper_antena():
 	nueva_antena()   # la antena nueva ya está, pero no cuenta hasta que termine el aturdimiento
 
 func quitar_vida(n):
+	Fx.impacto_jefe(global_position, n)   # chispas, temblor y número de daño
 	vida = max(vida - n, 0)
 	vida_cambiada.emit(vida, VIDA_MAX)
 	if vida <= 0:
@@ -670,9 +676,13 @@ func entrar_fase_2():
 	fase = 2
 	antena.position = POS_ANTENA[randi() % 3]   # la antena actual se reubica
 	cola.agregar_final("directo")   # entra "Directo en vivo" a la cola
+	Fx.sonar("fase2")
+	Fx.temblor(8.0, 0.5)
+	Fx.destello(Color(1, 0.2, 0.2), 0.25, 0.4)
 	print("Jefe: FASE 2")
 
 func morir():
+	Fx.explosion(global_position)   # explosión grande antes de desaparecer
 	muerto = true
 	print("Pelea terminada en ", snappedf(t_pelea, 0.1), " s")
 	murio.emit()

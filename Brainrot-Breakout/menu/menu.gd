@@ -104,12 +104,14 @@ func ir_a(nombre):
 # ---------- acciones ----------
 func jugar():
 	Registro.libres_inicio = 0
+	Registro.xp_inicio = 0
 	Registro.modo_arcade = false
 	Registro.tiempo = 0.0
 	get_tree().change_scene_to_file(ESCENA_ZONA % [1, 1])   # sigue sola hasta la zona 6
 
 func arcade(n):
 	Registro.libres_inicio = 0
+	Registro.xp_inicio = 0
 	Registro.tiempo = 0.0
 	Registro.modo_arcade = true   # al terminar la zona se vuelve a este menú
 	get_tree().change_scene_to_file(ESCENA_ZONA % [n, n])
@@ -332,7 +334,7 @@ func abrir_ranking():
 func crear_ranking():
 	var v = VBoxContainer.new()
 	v.add_theme_constant_override("separation", 12)
-	v.custom_minimum_size = Vector2(560, 0)
+	v.custom_minimum_size = Vector2(760, 0)
 	v.add_child(crear_subtitulo("LEADERBOARD · TOP 10"))
 	cont_ranking = VBoxContainer.new()
 	cont_ranking.add_theme_constant_override("separation", 2)
@@ -352,19 +354,38 @@ func llenar_ranking():
 		vacio.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		cont_ranking.add_child(vacio)
 		return
-	cont_ranking.add_child(crear_fila_ranking("#", "NOMBRE", "LIBERADOS", "TIEMPO", COLOR_ACENTO))
+	cont_ranking.add_child(crear_fila_ranking("#", "NOMBRE", "LIBERADOS", "TIEMPO", COLOR_ACENTO, 0))
 	for i in range(lb.lista.tam):
 		var e = lb.lista.obtener(i)
-		cont_ranking.add_child(crear_fila_ranking(str(i + 1), e.nombre, str(e.libres), Leaderboard.formato_tiempo(e.tiempo), Color.WHITE))
+		cont_ranking.add_child(crear_fila_ranking(str(i + 1), e.nombre, str(e.libres), Leaderboard.formato_tiempo(e.tiempo), Color.WHITE, e.nivel))
 
-func crear_fila_ranking(puesto, nombre, libres, tiempo, color):
+# nivel = 0 es la fila de títulos; si no, se muestra la skin de ese nivel y su nombre
+func crear_fila_ranking(puesto, nombre, libres, tiempo, color, nivel):
 	var fila = HBoxContainer.new()
 	fila.add_theme_constant_override("separation", 12)
-	var datos = [[puesto, 40], [nombre, 220], [libres, 110], [tiempo, 90]]
+	var datos = [[puesto, 40], [nombre, 190], [libres, 100], [tiempo, 80]]
 	for d in datos:
 		var l = crear_etiqueta(d[0], d[1])
 		l.add_theme_font_size_override("font_size", 16)
 		l.add_theme_color_override("font_color", color)
+		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		fila.add_child(l)
+	if nivel == 0:
+		var t = crear_etiqueta("NIVEL", 250)
+		t.add_theme_font_size_override("font_size", 16)
+		t.add_theme_color_override("font_color", color)
+		fila.add_child(t)
+	else:
+		var img = TextureRect.new()
+		img.texture = Leaderboard.retrato(nivel)
+		img.custom_minimum_size = Vector2(42, 48)
+		img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		fila.add_child(img)
+		var l = crear_etiqueta("%d · %s" % [nivel, Leaderboard.NOMBRES_NIVEL[nivel - 1]], 210)
+		l.add_theme_font_size_override("font_size", 16)
+		l.add_theme_color_override("font_color", Color(0.55, 1.0, 1.0))
+		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		fila.add_child(l)
 	return fila
 

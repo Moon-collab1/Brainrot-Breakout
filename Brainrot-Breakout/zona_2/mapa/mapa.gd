@@ -1,8 +1,7 @@
 extends Node2D
 
-# Mapa de la Zona 2 «Edificio Social». Todo se dibuja con _draw() (placeholder):
-# para usar PNG reales, reemplaza cada bloque marcado con "REEMPLAZAR" por un Sprite2D
-# en zona_2/assets/. Las colisiones NO se dibujan aquí: están en MapaZona2.tscn.
+# Mapa de la Zona 2 «Edificio Social». Fondo: zona_2/assets/edificio.png (generado con los
+# sofás y macetas en las posiciones de abajo); las pantallas se animan aquí. Las colisiones NO se dibujan aquí: están en MapaZona2.tscn.
 const PISO_Y = 124.0     # el piso empieza aquí; arriba hay edificios y pantallas
 const BALDOSA = 72.0
 const COLOR_PISO = Color(0.13, 0.14, 0.28)
@@ -19,44 +18,26 @@ const MACETAS = [Vector2(60, 330), Vector2(1092, 330)]
 const PANTALLAS = [Vector2(200, 65), Vector2(580, 65), Vector2(960, 65)]
 const ALTURAS = [90, 70, 110, 80, 100, 65, 95, 85, 105, 75, 90, 100]
 
+const FONDO = preload("res://zona_2/assets/edificio.png")   # ciudad, sofás, alfombras y macetas ya dibujados
+const COLORES_POST = [Color(0.95, 0.3, 0.6), Color(0.3, 0.75, 0.95), Color(0.95, 0.75, 0.25), Color(0.6, 0.4, 1.0)]
+
+func _process(_delta):
+	queue_redraw()   # las pantallas gigantes pasan publicaciones
+
 func _draw():
-	# REEMPLAZAR: fondo de edificios (arriba del piso)
-	draw_rect(Rect2(0, 0, 1152, PISO_Y), COLOR_FONDO)
-	for i in range(ALTURAS.size()):
-		var h = ALTURAS[i]
-		draw_rect(Rect2(i * 96.0, PISO_Y - h, 94, h), COLOR_EDIFICIO)
-		for fx in range(3):
-			for fy in range(int(h / 24.0) - 1):
-				var luz = Color(0.85, 0.7, 0.25) if (i + fx + fy) % 3 == 0 else Color(0.08, 0.09, 0.2)
-				draw_rect(Rect2(i * 96.0 + 12 + fx * 28, PISO_Y - h + 8 + fy * 24, 12, 14), luz)
-
-	# REEMPLAZAR: piso de baldosas de 72 px
-	draw_rect(Rect2(0, PISO_Y, 1152, 648 - PISO_Y), COLOR_PISO)
-	var x = 0.0
-	while x <= 1152.0:
-		draw_line(Vector2(x, PISO_Y), Vector2(x, 648), COLOR_LINEA, 2.0)
-		x += BALDOSA
-	var y = PISO_Y
-	while y <= 648.0:
-		draw_line(Vector2(0, y), Vector2(1152, y), COLOR_LINEA, 2.0)
-		y += BALDOSA
-
-	# REEMPLAZAR: 3 pantallas decorativas (sin colisión), 224x90
-	for c in PANTALLAS:
-		draw_rect(Rect2(c - Vector2(112, 45), Vector2(224, 90)), COLOR_BORDE_PANTALLA)
-		draw_rect(Rect2(c - Vector2(106, 39), Vector2(212, 78)), Color(0.05, 0.05, 0.12))
-		draw_rect(Rect2(c + Vector2(-96, -29), Vector2(60, 58)), Color(0.85, 0.25, 0.55))
-		draw_rect(Rect2(c + Vector2(-28, -29), Vector2(60, 58)), Color(0.3, 0.7, 0.85))
-		draw_rect(Rect2(c + Vector2(40, -29), Vector2(56, 58)), Color(0.85, 0.7, 0.25))
-
-	# REEMPLAZAR: sofás 154x68 (colisión 146x56 en el .tscn)
-	for c in SOFAS:
-		draw_rect(Rect2(c - Vector2(77, 34), Vector2(154, 68)), COLOR_SOFA)
-		draw_rect(Rect2(c - Vector2(77, 34), Vector2(154, 14)), COLOR_SOFA.darkened(0.25))
-		draw_rect(Rect2(c + Vector2(-62, -16), Vector2(58, 36)), Color(0.3, 0.8, 1.0))
-		draw_rect(Rect2(c + Vector2(4, -16), Vector2(58, 36)), Color(1.0, 0.3, 0.6))
-
-	# REEMPLAZAR: macetas (diámetro 48, colisión círculo r=22)
-	for c in MACETAS:
-		draw_circle(c, 24.0, COLOR_MACETA)
-		draw_circle(c, 14.0, COLOR_MACETA.lightened(0.3))
+	draw_texture(FONDO, Vector2.ZERO)
+	# pantallas gigantes: un feed infinito que se desliza (el «scroll» del que te liberas)
+	var t = Time.get_ticks_msec() / 1000.0
+	for i in range(PANTALLAS.size()):
+		var c = PANTALLAS[i]
+		var area = Rect2(c - Vector2(104, 37), Vector2(208, 74))
+		var off = fmod(t * 40.0 + i * 37.0, 70.0)
+		for k in range(4):
+			var x = area.position.x + k * 70.0 - off
+			var r = Rect2(Vector2(x + 4, area.position.y + 6), Vector2(60, 50)).intersection(area)
+			if r.size.x > 2:
+				draw_rect(r, COLORES_POST[(k + i + int((t * 40.0 + i * 37.0) / 70.0)) % 4])
+		# barra de likes que late
+		var pulso = 0.5 + 0.5 * sin(t * 4.0 + i)
+		draw_rect(Rect2(area.position + Vector2(6, 60), Vector2(196 * (0.3 + 0.7 * pulso), 8)), Color(1, 0.35, 0.6, 0.9))
+		draw_circle(area.position + Vector2(196, 64), 6.0, Color(1, 0.3, 0.5))

@@ -41,3 +41,8 @@ func _draw():
 	draw_circle(Vector2(-radio * 0.25, -radio * 0.2), radio * 0.45, Color(0.16, 0.13, 0.22, 0.6 * alfa))
 	draw_circle(Vector2(radio * 0.3, radio * 0.25), radio * 0.2, Color(0.5, 0.45, 0.7, 0.35 * alfa))
 	draw_arc(Vector2.ZERO, radio, 0.0, TAU, 40, Color(0.9, 0.75, 0.2, 0.6 * alfa), 2.0)
+	# brillo tornasol del aceite que se mueve
+	var g = t * 1.5
+	for k in range(3):
+		var col = Color.from_hsv(fmod(g * 0.1 + k * 0.33, 1.0), 0.6, 1.0, 0.22 * alfa)
+		draw_arc(Vector2(sin(g + k) * radio * 0.2, cos(g * 0.8 + k) * radio * 0.15), radio * (0.35 + k * 0.17), g + k, g + k + 2.0, 20, col, 4.0)

@@ -106,6 +106,8 @@ func _ready():
 	tw_intro.tween_property(self, "modulate:a", 1.0, 1.0)
 	timer_estado.timeout.connect(_al_terminar_estado)
 	cambiar_estado(Estado.INTRO)
+	Fx.sonar("jefe_aparece")
+	Fx.temblor(6.0, 0.4)
 
 func _process(delta):
 	if muerto:
@@ -139,6 +141,7 @@ func aturdir(seg):
 	en_aviso = false
 	ocultar_nombre()
 	limpiar_ataques()
+	Fx.sonar("aturdido")
 	estado = Estado.ATURDIDO
 	timer_estado.stop()
 	timer_estado.start(seg)
@@ -201,6 +204,7 @@ func siguiente_ataque(ignorar):
 # Muestra el nombre del ataque bajo el jefe mientras dura el aviso
 func avisar(mi_id, seg, nombre):
 	mostrar_nombre(nombres[nombre])
+	Fx.sonar("aviso", randf_range(0.95, 1.05), -2.0)
 	en_aviso = true
 	await esperar(seg)
 	if mi_id == id_ataque:   # si se canceló, aturdir() ya lo apagó
@@ -257,6 +261,7 @@ func recibir_golpe(pos):
 		quitar_vida(dano_golpe)
 
 func quitar_vida(n):
+	Fx.impacto_jefe(global_position, n)   # chispas, temblor y número de daño
 	vida = max(vida - n, 0)
 	vida_cambiada.emit(vida, vida_max)
 	if vida <= 0:
@@ -269,9 +274,13 @@ func entrar_fase_2():
 	for nombre in ataques_fase2:
 		cola.agregar_final(nombre)
 	al_entrar_fase2()
+	Fx.sonar("fase2")
+	Fx.temblor(8.0, 0.5)
+	Fx.destello(Color(1, 0.2, 0.2), 0.25, 0.4)
 	print("Jefe: FASE 2")
 
 func morir():
+	Fx.explosion(global_position)   # explosión grande antes de desaparecer
 	muerto = true
 	id_ataque += 1
 	limpiar_ataques()
